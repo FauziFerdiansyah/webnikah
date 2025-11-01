@@ -381,6 +381,19 @@ section p {
   border-radius: 1000px;
 }
 
+@media screen and (max-width: 768px) {
+  .logo-wrap {
+    height: 80px;
+  }
+  .hero-section .hero-header {
+    gap: 10px;
+  }
+  .hero-section .hero-body .image-body-frame {
+    width: 240px;
+    height: 330px;
+  }
+}
+
 .hero-section .hero-footer {
   width: 100%;
   text-align: center;
@@ -1962,7 +1975,8 @@ font-weight: var(--font-weight-bold);
   overflow: hidden;
   position: fixed;
   width: 100%;
-  height: 100vh;
+  height: 100dvh; /* Use dvh for better mobile support */
+  min-height: 100dvh;
   z-index: 999999;
   top: 0;
   left: 0;
@@ -1975,6 +1989,14 @@ font-weight: var(--font-weight-bold);
   display: flex;
   flex-direction: column;
   display: none;
+  /* Add these properties to prevent scrolling */
+  touch-action: none;
+  -webkit-overflow-scrolling: none;
+}
+
+.welcome-section * {
+  overflow: hidden;
+  overflow-y: hidden;
 }
 
 @media only screen and (max-width: 960px) {
@@ -1989,7 +2011,7 @@ font-weight: var(--font-weight-bold);
 }
 
 .welcome-content {
-  padding: 97px 59px;
+  /* padding: 97px 59px; */
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1998,15 +2020,17 @@ font-weight: var(--font-weight-bold);
 
 .welcome-body {
   position: relative;
-  height: 100%;
-  background: var(--background-primary);
-  border-radius: 999px;
-  overflow: hidden;
-  display: flex;
+  /* height: 100%; */
+  /* background: var(--background-primary); */
+  /* border-radius: 999px; */
+  /* overflow: hidden;
+  align-content: center; */
+  margin-top: 50%;
+  /* display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
-  gap: 24px;
+  gap: 24px; */
 }
 
 .welcome-header {
@@ -2019,10 +2043,11 @@ font-weight: var(--font-weight-bold);
   gap: 20px;
 }
 
-.welcome-header  h1 {
-  font-size: calc(var(--font-size-5xl) + 12px);
+.welcome-header h1 {
+  font-size: calc(var(--font-size-4xl) + 12px);
   padding: 0px;
   margin: 0px auto;
+  margin-bottom: 20px;
 }
 
 .welcome-details {

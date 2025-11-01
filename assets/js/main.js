@@ -598,3 +598,34 @@ if (typeof window !== 'undefined') {
   
   console.log('🔧 Main.js objects available in window.MainJS for debugging');
 }
+
+/**
+ * Replay animasi AOS di hero-section TANPA blink.
+ * Caranya: hapus class -> force reflow -> tambah lagi.
+ */
+function replayHeroAOS() {
+  console.log("🎞️ Replaying hero-section AOS...");
+
+  if (typeof AOS === "undefined") {
+    console.error("❌ AOS belum siap");
+    return;
+  }
+
+  const heroEls = document.querySelectorAll(".hero-section [data-aos]");
+  if (!heroEls.length) return;
+
+  heroEls.forEach((el) => {
+    // Hapus class animasi
+    el.classList.remove("aos-animate");
+  });
+
+  // Force browser reflow (trik CSS)
+  void document.body.offsetHeight;
+
+  // Tambah lagi class animasi biar replay
+  heroEls.forEach((el) => {
+    el.classList.add("aos-animate");
+  });
+
+  console.log("✅ Animasi hero-section diputar ulang");
+}

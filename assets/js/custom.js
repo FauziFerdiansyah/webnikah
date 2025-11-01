@@ -1497,6 +1497,33 @@ const CustomInitializer = {
   'use strict';
   
   console.log('🎨 Custom.js loaded');
+
+  // Add dynamic height function for welcome section
+  function setWelcomeSectionHeight() {
+    const welcomeSection = document.querySelector('.welcome-section');
+    if (welcomeSection) {
+      // Use 100dvh for mobile devices to account for browser chrome
+      // Fallback to 100vh for browsers that don't support dvh
+      const dynamicHeight = typeof window.orientation !== 'undefined' ? '100dvh' : '100vh';
+      welcomeSection.style.height = dynamicHeight;
+      
+      // Also set min-height as fallback
+      welcomeSection.style.minHeight = dynamicHeight;
+      
+      console.log(`📱 Welcome section height set to: ${dynamicHeight}`);
+    }
+  }
+
+  // Call the function on load and resize
+  window.addEventListener('load', setWelcomeSectionHeight);
+  window.addEventListener('resize', setWelcomeSectionHeight);
+  
+  // Also call it immediately in case the DOM is already ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setWelcomeSectionHeight);
+  } else {
+    setWelcomeSectionHeight();
+  }
   
   // Listen untuk main initialization complete event
   document.addEventListener('mainInitComplete', (event) => {
@@ -1591,40 +1618,48 @@ const CustomInitializer = {
     });
   });
 
-  // --- Buka Undangan handler ---
-  $("#startToExplore").on("click", function (e) {
-    e.preventDefault();
-    
-    // Get the right-side scrollable element
-    const $rightSide = $(".right-side");
-    const $welcomeSection = $(".welcome-section");
-    const $welcomeContent = $(".welcome-content");
-    
-    // Disable scroll on right-side
-    $rightSide.css("overflow-y", "hidden");
-    
-    // First animation: Fade welcome-content downward
-    $welcomeContent.css({
-      'transition': 'opacity 0.6s ease, transform 0.6s ease',
-      'opacity': '0',
-      'transform': 'translate3d(0, 30px, 0)'
-    });
-    
-    // After first animation, slide welcome-section upward while fading out
-    setTimeout(function() {
-      $welcomeSection.css({
-        'transition': 'opacity 0.8s ease, transform 0.8s ease',
-        'opacity': '0',
-        'transform': 'translate3d(0, -100%, 0)'
-      });
-      
-      // After second animation completes, hide the section and re-enable scroll
-      setTimeout(function() {
-        $welcomeSection.css('visibility', 'hidden');
-        $rightSide.css("overflow-y", "auto");
-      }, 800);
-    }, 600);
+/**
+ * Handler tombol "Buka Undangan"
+ * animasi welcome → sembunyi → aktifin scroll → reset AOS
+ */
+$("#startToExplore").on("click", function (e) {
+  e.preventDefault();
+
+  const $rightSide = $(".right-side");
+  const $welcomeSection = $(".welcome-section");
+  const $welcomeContent = $(".welcome-content");
+
+  $rightSide.css("overflow-y", "hidden");
+
+  // Fade konten welcome
+  $welcomeContent.css({
+    transition: "opacity 0.6s ease, transform 0.6s ease",
+    opacity: "0",
+    transform: "translate3d(0, 30px, 0)",
   });
+
+  // Setelah fade selesai
+  setTimeout(() => {
+    $welcomeSection.css({
+      transition: "opacity 0.8s ease, transform 0.8s ease",
+      opacity: "0",
+      transform: "translate3d(0, -100%, 0)",
+    });
+
+    // Setelah welcome keluar layar
+    setTimeout(() => {
+      $welcomeSection.css("visibility", "hidden");
+      $rightSide.css("overflow-y", "auto");
+
+      // Jalankan ulang animasi hero
+      replayHeroAOS();
+
+      // Kalau ingin tetap sinkron dengan AOS internal:
+      if (typeof AOS !== "undefined") AOS.refresh();
+
+    }, 800);
+  }, 600);
+});
 
 })();
 
