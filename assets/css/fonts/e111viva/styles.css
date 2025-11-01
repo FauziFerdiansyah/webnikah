@@ -1,0 +1,9 @@
+@font-face {
+  font-family: 'English111 Vivace BT';
+  src: url('e111viva.eot');
+  src: url('e111viva.eot?#iefix') format('embedded-opentype'),
+    url('e111viva.woff2') format('woff2'),
+    url('e111viva.woff') format('woff'),
+    url('e111viva.ttf') format('truetype'),
+    url('e111viva.svg#English111 Vivace BT') format('svg');
+}
