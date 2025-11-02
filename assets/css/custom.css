@@ -109,7 +109,7 @@ PENTING: Fixed position agar tidak bisa di-scroll
   height: 100%;
   inset: 0;
   background-size: inherit;
-  background-image: url("/assets/images/pattern3.png");
+  background-image: url("../images/pattern3.png");
   background-position: center;
   opacity: 0.05;
   background-repeat: repeat;
@@ -427,7 +427,7 @@ section p {
   height: 100%;
   inset: 0;
   background-size: cover;
-  background-image: url("/assets/images/pattern2.jpg");
+  background-image: url("../images/pattern2.jpg");
   background-position: top center;
   opacity: 0.7 !important;
 }
@@ -944,7 +944,7 @@ font-weight: var(--font-weight-bold);
   height: 100%;
   inset: 0;
   background-size: cover;
-  background-image: url("/assets/images/pattern2.jpg");
+  background-image: url("../images/pattern2.jpg");
   background-position: top center;
   opacity: 0.35;
 }
@@ -1026,7 +1026,7 @@ font-weight: var(--font-weight-bold);
   height: 100%;
   inset: 0;
   background-size: contain;
-  background-image: url("/assets/images/pattern3.png");
+  background-image: url("../images/pattern3.png");
   background-position: center;
   opacity: 0.15;
   background-repeat: repeat;
@@ -1427,7 +1427,7 @@ font-weight: var(--font-weight-bold);
   height: 100%;
   inset: 0;
   background-size: cover;
-  background-image: url("/assets/images/pattern2.jpg");
+  background-image: url("../images/pattern2.jpg");
   background-position: center;
   opacity: 0.35;
 }
@@ -1560,7 +1560,7 @@ font-weight: var(--font-weight-bold);
 .gift-card-item:before {
   content: '';
   background-size: cover;
-  background-image: url(/assets/images/card.webp);
+  background-image: url(../images/card.webp);
   background-position: center center;
   background-color: #FFFFFF;
   width: 100%;
@@ -1645,7 +1645,7 @@ font-weight: var(--font-weight-bold);
   height: 100%;
   inset: 0;
   background-size: contain;
-  background-image: url("/assets/images/pattern3.png");
+  background-image: url("../images/pattern3.png");
   background-position: center;
   opacity: 0.15;
   background-repeat: repeat;
