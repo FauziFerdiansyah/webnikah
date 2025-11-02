@@ -1502,27 +1502,79 @@ const CustomInitializer = {
   function setWelcomeSectionHeight() {
     const welcomeSection = document.querySelector('.welcome-section');
     if (welcomeSection) {
-      // Use 100dvh for mobile devices to account for browser chrome
-      // Fallback to 100vh for browsers that don't support dvh
-      const dynamicHeight = typeof window.orientation !== 'undefined' ? '100dvh' : '100vh';
+      // Use 100dvh for modern browsers, fallback to 100vh
+      // Always prefer 100dvh for better mobile support
+      const dynamicHeight = '100dvh';
       welcomeSection.style.height = dynamicHeight;
-      
-      // Also set min-height as fallback
       welcomeSection.style.minHeight = dynamicHeight;
+      
+      // Ensure the welcome section covers the entire viewport
+      welcomeSection.style.width = '100%';
+      welcomeSection.style.position = 'fixed';
+      welcomeSection.style.top = '0';
+      welcomeSection.style.left = '0';
+      welcomeSection.style.overflow = 'hidden';
       
       console.log(`📱 Welcome section height set to: ${dynamicHeight}`);
     }
   }
 
+  // Enhanced function to prevent scrolling when welcome section is active
+  function preventScrollWhenWelcomeActive() {
+    const welcomeSection = document.querySelector('.welcome-section');
+    const rightSide = document.querySelector('.right-side');
+    
+    if (welcomeSection && getComputedStyle(welcomeSection).display !== 'none') {
+      // Prevent scrolling on the main content
+      if (rightSide) {
+        rightSide.style.overflow = 'hidden';
+      }
+      
+      // Prevent scrolling on the body
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+    }
+  }
+
+  // Function to restore scrolling when welcome section is hidden
+  function restoreScroll() {
+    const rightSide = document.querySelector('.right-side');
+    
+    // Restore scrolling on the main content
+    if (rightSide) {
+      rightSide.style.overflowY = 'auto';
+    }
+    
+    // Restore scrolling on the body
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
+  }
+
   // Call the function on load and resize
-  window.addEventListener('load', setWelcomeSectionHeight);
-  window.addEventListener('resize', setWelcomeSectionHeight);
+  window.addEventListener('load', function() {
+    setWelcomeSectionHeight();
+    preventScrollWhenWelcomeActive();
+  });
+  
+  window.addEventListener('resize', function() {
+    setWelcomeSectionHeight();
+  });
   
   // Also call it immediately in case the DOM is already ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setWelcomeSectionHeight);
+    document.addEventListener('DOMContentLoaded', function() {
+      setWelcomeSectionHeight();
+      preventScrollWhenWelcomeActive();
+    });
   } else {
     setWelcomeSectionHeight();
+    preventScrollWhenWelcomeActive();
   }
   
   // Listen untuk main initialization complete event
