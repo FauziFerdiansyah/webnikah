@@ -1887,6 +1887,7 @@ font-weight: var(--font-weight-bold);
   overflow: hidden;
   display: flex;
   padding: 80px 47px;
+  /* margin-bottom: 50px; */
 }
 
 @media (min-width: 560px) {
