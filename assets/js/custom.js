@@ -1,3 +1,48 @@
+/**
+ * PRELOADER MANAGER
+ * Mengelola tampilan preloader untuk memastikan durasi minimal
+ * dan pengalaman pengguna yang mulus.
+ */
+const PreloaderManager = {
+  init() {
+    const preloader = document.getElementById('preloader');
+    if (!preloader) {
+      console.warn('⚠️ Preloader element tidak ditemukan');
+      return;
+    }
+
+    const startTime = Date.now();
+    const minDisplayTime = 3000; // 3 detik
+
+    window.addEventListener('load', () => {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = minDisplayTime - elapsedTime;
+
+      if (remainingTime > 0) {
+        setTimeout(() => this.hide(preloader), remainingTime);
+      } else {
+        this.hide(preloader);
+      }
+    });
+
+    console.log('⏳ PreloaderManager initialized');
+  },
+
+  hide(preloader) {
+    preloader.classList.add('hidden');
+    // Hapus dari DOM setelah transisi selesai agar tidak mengganggu
+    preloader.addEventListener('transitionend', () => {
+      if (preloader.parentNode) {
+        preloader.parentNode.removeChild(preloader);
+      }
+    }, { once: true });
+  }
+};
+
+// Inisialisasi Preloader segera
+PreloaderManager.init();
+
+
 /*
 ===========================================
 CUSTOM.JS - PROJECT SPECIFIC FUNCTIONALITY
@@ -25,7 +70,7 @@ const MusicPlayerManager = {
   
   // Configuration
   config: {
-    audioPath: '/Users/fauzifr/Documents/fauzidev/develop/wedding-web/web-main/assets/music/10cm-lovely-runner-spring-snow-karaoke-version-yumiella-dolkness-1749456684-412d8f467971a1df1265b76b.mp3',
+    audioPath: '/assets/music/10cm-lovely-runner-spring-snow-karaoke-version-yumiella-dolkness-1749456684-412d8f467971a1df1265b76b.mp3',
     volume: 0.7,
     fadeInDuration: 2000,
     fadeOutDuration: 1000,
@@ -1110,7 +1155,7 @@ const CustomInitializer = {
       // Initialize core features
       MusicPlayerManager.init();
       SmoothScrollManager.init();
-      RSVPFormManager.init();
+      // RSVPFormManager.init();
       CountdownManager.init();
       
       // Setup additional interactions
@@ -1619,11 +1664,11 @@ const CustomInitializer = {
   const $rsvpDescription = $(".rsvp-description");
 
   // --- Default state ---
-  $("input[name='confirm'][value='yes']").prop("checked", true);
-  $(".rsvp-confirm-btn.going").addClass("active");
-  $peopleInput.val(1);
-  $amountWrap.addClass("open"); // <-- ini penting
-  $rsvpForm.hide(); // sembunyikan form saat awal
+  // $("input[name='confirm'][value='yes']").prop("checked", true);
+  // $(".rsvp-confirm-btn.going").addClass("active");
+  // $peopleInput.val(1);
+  // $amountWrap.addClass("open"); // <-- ini penting
+  // $rsvpForm.hide(); // sembunyikan form saat awal
 
   // --- Toggle active button dan show/hide jumlah orang ---
   $("input[name='confirm']").on("change", function () {
@@ -1640,35 +1685,20 @@ const CustomInitializer = {
     }
   });
 
-  // --- Plus / Minus control ---
-  $(".toggle-btn.plus").on("click", function () {
-    let val = parseInt($peopleInput.val(), 10);
-    if (val < 2) {
-      $peopleInput.val(val + 1);
-    }
-  });
-
-  $(".toggle-btn.minus").on("click", function () {
-    let val = parseInt($peopleInput.val(), 10);
-    if (val > 1) {
-      $peopleInput.val(val - 1);
-    }
-  });
-
   // --- Klik "Ubah Kehadiran" ---
-  $(".action-rsvp").on("click", function () {
-    $rsvpDescription.hide();
-    $rsvpForm.fadeIn(300);
-  });
+  // $(".action-rsvp").on("click", function () {
+  //   $rsvpDescription.hide();
+  //   $rsvpForm.fadeIn(300);
+  // });
 
   // --- Submit handler ---
-  $("#rsvp-form-data").on("submit", function (e) {
-    e.preventDefault();
-    window.showSnackbar('Terima kasih sudah konfirmasi!');
-    $rsvpForm.fadeOut(300, function () {
-      $rsvpDescription.fadeIn(300);
-    });
-  });
+  // $("#rsvp-form-data").on("submit", function (e) {
+  //   e.preventDefault();
+  //   window.showSnackbar('Terima kasih sudah konfirmasi!');
+  //   $rsvpForm.fadeOut(300, function () {
+  //     $rsvpDescription.fadeIn(300);
+  //   });
+  // });
 
 /**
  * Handler tombol "Buka Undangan"
@@ -1713,5 +1743,503 @@ $("#startToExplore").on("click", function (e) {
   }, 600);
 });
 
+/**
+   * ================================
+   * DEVICE + URL UTILITIES
+   * ================================
+   */
+
+  function detectDeviceType() {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/mobile|iphone|android/.test(ua)) return "mobile";
+    if (/ipad|tablet/.test(ua)) return "tablet";
+    return "desktop";
+  }
+
+  function getGuestIdFromURL() {
+    const p = new URLSearchParams(window.location.search);
+    return p.get("g");
+  }
+
+  /**
+   * ================================
+   * LOAD GUEST + TRACKING
+   * ================================
+   */
+
+  let _guestLoaded = false;
+
+  async function updateGuestTracking(guestId) {
+    if (!guestId || !window.db || !window.firestore) return;
+
+    try {
+      const ref = window.firestore.doc(window.db, "guest", guestId);
+      const snap = await window.firestore.getDoc(ref);
+      if (!snap.exists()) return;
+
+      const data = snap.data();
+      const now = window.firestore.serverTimestamp();
+      const device = detectDeviceType();
+
+      const updateData = {
+        lastOpenedAt: now,
+        openCount: (data.openCount || 0) + 1,
+        deviceType: device,
+        updatedAt: now,
+      };
+
+      if (!data.opened) {
+        updateData.opened = true;
+        updateData.openedAt = now;
+      }
+
+      await window.firestore.updateDoc(ref, updateData);
+
+      console.log("✅ guest tracking updated", updateData);
+    } catch (err) {
+      console.error("❌ tracking update failed:", err);
+    }
+  }
+
+  async function loadGuestInfo() {
+    console.log("🔥 loadGuestInfo() DIPANGGIL");
+
+    if (_guestLoaded) {
+      console.log("⛔ loadGuestInfo() ABAI — sudah pernah jalan");
+      return;
+    }
+    _guestLoaded = true;
+
+    const guestId = getGuestIdFromURL();
+    console.log("🔍 guestId dari URL:", guestId);
+
+    if (!guestId) {
+      console.warn("❌ Tidak ada g= di URL");
+      return;
+    }
+
+    if (!window.db || !window.firestore) {
+      console.warn("⏳ Firebase belum siap → retry...");
+      setTimeout(loadGuestInfo, 300);
+      return;
+    }
+
+    console.log("✅ Firebase siap, ambil data...");
+
+    const ref = window.firestore.doc(window.db, "guest", guestId);
+    const snap = await window.firestore.getDoc(ref);
+
+    console.log("📥 FIREBASE SNAP:", snap.exists(), snap.data());
+
+    if (!snap.exists()) {
+      console.warn("❌ Guest tidak ditemukan di Firestore!");
+      return;
+    }
+
+    const guest = snap.data();
+    window.currentGuest = guest;
+    window.currentGuestId = guestId;
+
+    console.log("✅ Guest ditemukan:", guest);
+
+    // ✅ SEHARUSNYA MUNCUL DI INPUT
+    $("#name").val(guest.name).prop("readonly", false);
+    $(".guest-name").text(guest.name);
+    console.log("✏️ Isi input name:", $("#name").val());
+
+    $(".guest-name").text(guest.name);
+
+    // Tracking
+    updateGuestTracking(guestId);
+  }
+
+
+  /**
+   * ================================
+   * RSVP: SUBMIT
+   * ================================
+   */
+
+  async function submitRSVP() {
+    if (!window.currentGuestId || !window.db || !window.firestore) return;
+
+    const guestId = window.currentGuestId;
+    const name = window.currentGuest?.name || "";
+    const status = $("input[name='confirm']:checked").val();
+    let count = Number($("#people").val() || 1);
+
+    if (status === "no") count = 0;
+
+    const now = window.firestore.serverTimestamp();
+    const device = detectDeviceType();
+
+    try {
+      // 1. Save to RSVP
+      await window.firestore.addDoc(
+        window.firestore.collection(window.db, "rsvp"),
+        {
+          guestId,
+          name,
+          status,
+          count,
+          deviceType: device,
+          createdAt: now,
+        }
+      );
+
+      // 2. Update GUEST
+      await window.firestore.updateDoc(
+        window.firestore.doc(window.db, "guest", guestId),
+        {
+          rsvpStatus: status,
+          rsvpCount: count,
+          updatedAt: now,
+        }
+      );
+
+      window.currentGuest.rsvpStatus = status;
+      window.currentGuest.rsvpCount = count;
+
+      // ✅ UPDATE UI LANGSUNG
+      renderRSVPDescription(status, count);
+      $(".rsvp-description").show();
+      $(".rsvp-form").hide();
+      // ✅ Tunda preload biar tidak niban UI
+      // setTimeout(() => {
+      //   preloadRSVP();
+      // }, 1200);
+
+      window.showSnackbar("Terima kasih sudah konfirmasi!");
+      return true;
+    } catch (err) {
+      console.error("❌ RSVP error", err);
+      window.showSnackbar("Gagal mengirim RSVP");
+      return false;
+    }
+  }
+
+  $("#rsvp-form-data").on("submit", async function (e) {
+    e.preventDefault();
+    const ok = await submitRSVP();
+    if (!ok) return;
+
+  $(".rsvp-form").fadeOut(300, function () {
+    $(".rsvp-description").fadeIn(300);
+  });
+});
+
+$(".action-rsvp").on("click", function () {
+  $(".rsvp-description").hide();
+  $(".rsvp-form").fadeIn(250);
+});
+
+/* ================================
+  PRELOAD RSVP
+================================ */
+
+async function preloadRSVP() {
+  const guestId = window.currentGuestId;
+  if (!guestId) return;
+
+  const q = window.firestore.query(
+    window.firestore.collection(window.db, "rsvp"),
+    window.firestore.where("guestId", "==", guestId),
+    window.firestore.orderBy("createdAt", "desc"),
+    window.firestore.limit(1)
+  );
+
+  const snap = await window.firestore.getDocs(q);
+  if (snap.empty) return;
+
+  const data = snap.docs[0].data();
+
+  if (data.status === "yes") {
+    $("input[value='yes']").prop("checked", true);
+    $(".rsvp-confirm-btn.going").addClass("active");
+    $("#people").val(data.count);
+    $(".rsvp-amount-wrap").addClass("open");
+  } else {
+    $("input[value='no']").prop("checked", true);
+    $(".rsvp-confirm-btn.not-going").addClass("active");
+    $(".rsvp-amount-wrap").removeClass("open");
+  }
+
+  renderRSVPDescription(
+    window.currentGuest?.rsvpStatus || data.status,
+    window.currentGuest?.rsvpCount || data.count
+  );
+
+  $(".rsvp-description").show();
+  $(".rsvp-form").hide();
+
+  console.log("✅ RSVP data loaded:", data);
+}
+
+/* ================================
+  RENDER STATUS UI
+================================ */
+
+function renderRSVPDescription(status, count) {
+  const iconEl = document.querySelector(".rsvp-message-title i");
+  const titleEl = document.querySelector(".rsvp-message-title");
+  const descEl = document.querySelector(".rsvp-message-text");
+  const statusEl = document.querySelector(".status-title-text");
+
+  if (!iconEl || !titleEl || !descEl) {
+    console.warn("⚠️ Elemen status UI belum ada di DOM");
+    return;
+  }
+
+  if (status === "yes") {
+    iconEl.className = "icon-present-rsvp";
+    titleEl.childNodes[1].nodeValue = "Akan Hadir";
+    statusEl.textContent = "Akan Hadir";
+    descEl.textContent = `Anda hadir dengan ${count} orang. Sampai bertemu!`;
+  } else {
+    iconEl.className = "icon-unpresent-rsvp";
+    titleEl.childNodes[1].nodeValue = "Tidak Hadir";
+    statusEl.textContent = "Tidak Hadir";
+    descEl.textContent = "Terima kasih sudah memberi kabar.";
+  }
+}
+
+
+  /**
+   * ================================
+   * LIMIT PEOPLE BY maxGuests
+   * ================================
+   */
+
+  $(".toggle-btn.plus").on("click", function () {
+    let val = parseInt($("#people").val(), 10);
+    const max = window.currentGuest?.maxGuests || 1;
+
+    if (val < max) {
+      $("#people").val(val + 1);
+    } else {
+      window.showSnackbar(`Maksimal ${max} orang`);
+    }
+  });
+
+  $(".toggle-btn.minus").on("click", function () {
+    let val = parseInt($("#people").val(), 10);
+    if (val > 1) $("#people").val(val - 1);
+  });
+
+  /**
+   * =======================================
+   * SETUP UI DINAMIS SETELAH GUEST LOADED
+   * =======================================
+   */
+  function applyDynamicRSVPUI() {
+    if (!window.currentGuest) return;
+
+    const guest = window.currentGuest;
+
+    $("#name").val(guest.name || "").prop("readonly", false);
+
+    const max = guest.maxGuests || 1;
+    $("#people").attr("max", max);
+
+    if (!guest.rsvpStatus || guest.rsvpStatus === "pending") {
+      $("input[name='confirm'][value='yes']").prop("checked", true);
+      $(".rsvp-confirm-btn.going").addClass("active");
+      $("#people").val(1);
+      $(".rsvp-amount-wrap").addClass("open");
+      return;
+    }
+  }
+
+  /**
+   * =======================================
+   * TOMBOL “UBAH KEHADIRAN”
+   * =======================================
+   */
+  $(".action-rsvp").on("click", function () {
+    $(".rsvp-description").hide();
+    $(".rsvp-form").fadeIn(250);
+  });
+
+  /**
+   * =======================================
+   * OVERRIDE preloadRSVP → auto-render UI
+   * =======================================
+   */
+  const _originalPreloadRSVP = preloadRSVP;
+  preloadRSVP = async function () {
+    await _originalPreloadRSVP();
+
+    // ✅ Setelah data RSVP diload → render UI nya
+    if (window.currentGuest && window.currentGuest.rsvpStatus) {
+      renderRSVPDescription(
+        window.currentGuest.rsvpStatus,
+        window.currentGuest.rsvpCount
+      );
+    }
+  };
+
+
+/* ==========================================================
+   STICKER POPUP MANAGER — FIXED VERSION (NO ARIA WARNING)
+   ========================================================== */
+
+const StickerPopupManager = {
+  popup: null,
+  grid: null,
+  chooseButton: null,
+  selectedSticker: null,
+
+  stickerList: [
+    'assets/images/sticker/stc-1.png',
+    'assets/images/sticker/stc-2.png',
+    'assets/images/sticker/stc-3.png',
+    'assets/images/sticker/stc-4.png',
+    'assets/images/sticker/stc-5.png',
+
+    'assets/images/sticker/stc-a-1.gif',
+    'assets/images/sticker/stc-a-2.gif',
+    'assets/images/sticker/stc-a-3.gif',
+    'assets/images/sticker/stc-a-4.gif',
+    'assets/images/sticker/stc-a-5.gif',
+    'assets/images/sticker/stc-a-6.gif',
+    'assets/images/sticker/stc-a-7.gif',
+    'assets/images/sticker/stc-a-8.gif',
+    'assets/images/sticker/stc-a-9.gif',
+    'assets/images/sticker/stc-a-10.gif',
+    'assets/images/sticker/stc-a-11.gif',
+    'assets/images/sticker/stc-a-12.gif',
+    'assets/images/sticker/stc-a-13.gif',
+    'assets/images/sticker/stc-a-14.gif',
+    'assets/images/sticker/stc-a-15.gif',
+    'assets/images/sticker/stc-a-16.gif',
+    'assets/images/sticker/stc-a-17.gif',
+    'assets/images/sticker/stc-a-18.gif',
+  ],
+
+  init() {
+    this.popup = document.getElementById("stickerPopup");
+    this.grid = document.getElementById("stickerGrid");
+    this.chooseButton = document.getElementById("chooseStickers");
+
+    if (!this.popup || !this.grid || !this.chooseButton) {
+      console.warn("⚠️ StickerPopupManager: element popup tidak ditemukan");
+      return;
+    }
+
+    // tombol buka popup
+    $(document).on("click", ".btn-sticker", () => this.open());
+
+    // tombol close
+    $(".popup-close").on("click", () => this.close());
+
+    // pilih sticker
+    $(document).on("click", ".sticker-item", (e) => {
+      const src = e.currentTarget.dataset.src;
+      this.select(src, e.currentTarget);
+    });
+
+    // konfirmasi memilih
+    $("#chooseStickers").on("click", () => this.apply());
+
+    console.log("✅ StickerPopupManager Initialized");
+  },
+
+  /* ===== OPEN POPUP ===== */
+  open() {
+    this.renderGrid();
+
+    this.popup.classList.add("open");
+    this.popup.removeAttribute("inert");
+
+    // Hilangkan fokus agar tidak ada warning
+    document.activeElement?.blur();
+    this.popup.setAttribute("tabindex", "-1");
+    this.popup.focus();
+  },
+
+  close() {
+    document.activeElement?.blur();
+
+    this.popup.classList.remove("open");
+    this.popup.setAttribute("inert", "");
+
+    this.selectedSticker = this.selectedSticker || null;
+  },
+
+  /* ===== RENDER GRID ===== */
+  renderGrid() {
+    this.grid.innerHTML = this.stickerList
+      .map(src => `
+        <div class="sticker-item ${this.selectedSticker === src ? 'selected' : ''}" data-src="${src}">
+          <img src="${src}">
+        </div>
+      `)
+      .join("");
+  },
+
+  /* ===== SELECT STICKER (single) ===== */
+  select(src, element) {
+    this.selectedSticker = src;
+
+    // hapus highlight sebelumnya
+    document.querySelectorAll(".sticker-item")
+      .forEach(i => i.classList.remove("selected"));
+
+    // highlight baru
+    element.classList.add("selected");
+  },
+
+  /* ===== APPLY TO COMMENT FORM ===== */
+  apply() {
+    if (!this.selectedSticker) {
+      window.showSnackbar("Pilih 1 sticker dulu");
+      return;
+    }
+
+    const container = document.getElementById("selectedStickers");
+    container.innerHTML = `
+      <div class="selected-sticker-item" data-src="${this.selectedSticker}">
+        <img src="${this.selectedSticker}">
+        <button type="button" class="remove-sticker">&times;</button>
+      </div>
+    `;
+
+    this.close();
+  }, // ✅ JANGAN LUPA KOMA DI SINI!
+};
+
+$(document).on("click", ".remove-sticker", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  $(this).parent().remove();
+});
+
+/* ===== INIT ===== */
+document.addEventListener("mainInitComplete", () => StickerPopupManager.init());
+document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
+
+/**
+ * ================================
+ * FIRE ON MAIN INIT COMPLETE
+ * ================================
+ */
+
+  document.addEventListener("mainInitComplete", () => {
+    loadGuestInfo().then(() => {
+
+      applyDynamicRSVPUI();
+
+      if (window.currentGuest?.rsvpStatus && window.currentGuest.rsvpStatus !== "pending") {
+        $(".rsvp-description").show();
+        $(".rsvp-form").hide();
+      } else {
+        $(".rsvp-description").hide();
+        $(".rsvp-form").show();
+      }
+
+      preloadRSVP();
+
+    });
+  });
 })();
 

@@ -3,14 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alfira & Fauzi | Wedding Invitation</title>
+    <!-- ... existing code ... -->
+    <title>The Wedding of Alfira & Fauzi</title>
     
+    <!-- Favicon -->
+    <link rel="icon" href="assets/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="assets/favicon/site.webmanifest">
     
     <!-- Performance Optimizations -->
-    <meta name="theme-color" content="#667eea">
-    <meta name="description" content="Wedding invitation from alfira & fauzi - Join us in celebrating our special day">
+    <meta name="theme-color" content="#9ba498">
+    <meta name="description" content="Minggu, 23 November 2025 | Wedding Invitation">
     <meta name="robots" content="noindex, nofollow">
 
+    <!-- Open Graph (Facebook, WhatsApp, etc.) -->
+    <meta property="og:title" content="The Wedding of Alfira & Fauzi">
+    <meta property="og:description" content="Minggu, 23 November 2025 | Wedding Invitation">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:image" content="assets/images/prewed/square.jpg">
+    <meta property="og:image:alt" content="Alfira & Fauzi">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Wedding of Alfira & Fauzi">
+    <meta name="twitter:description" content="Minggu, 23 November 2025 | Wedding Invitation">
+    <meta name="twitter:image" content="assets/images/prewed/square.jpg">
+    <meta name="twitter:image:alt" content="Alfira & Fauzi">
     
     <!-- Preconnect untuk external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,12 +60,71 @@
 
     <!-- Custom CSS - Project specific styles -->
     <link rel="stylesheet" href="assets/css/custom.css">
+
+    <!-- Firebase -->
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { 
+        getFirestore,
+        collection,
+        addDoc,
+        doc,
+        getDoc,
+        setDoc,
+        updateDoc,
+        serverTimestamp,
+        query,
+        where,
+        orderBy,
+        limit,
+        getDocs
+    } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCffYw2s4r3d4RB1Io0kYH41-8nu9qspm8",
+        authDomain: "wedding-web-alfira-fauzi.firebaseapp.com",
+        projectId: "wedding-web-alfira-fauzi",
+        storageBucket: "wedding-web-alfira-fauzi.firebasestorage.app",
+        messagingSenderId: "260951532899",
+        appId: "1:260951532899:web:76d14d2972ce8b7cc99f56"
+    };
+
+    // Init ✅
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // lempar ke global
+    window.db = db;
+    window.firebaseApp = app;
+
+    window.firestore = {
+        collection,
+        addDoc,
+        doc,
+        getDoc,
+        setDoc,
+        updateDoc,
+        serverTimestamp,
+        query,
+        where,
+        orderBy,
+        limit,
+        getDocs
+    };
+
+    console.log("✅ Firebase initialized (clean)");
+</script>
     
     <!-- Resource hints untuk JavaScript -->
     <link rel="modulepreload" href="assets/js/main.js">
     <link rel="modulepreload" href="assets/js/custom.js">
 </head>
 <body>
+
+  <!-- ===== PRELOADER ===== -->
+  <div id="preloader">
+    <img src="assets/images/loading.gif" alt="Loading...">
+  </div>
     <div class="container">
         <section class="welcome-section" data-aos="fade-up" data-aos-duration="100" data-aos-delay="100">
             <div class="ornaments-wrapper">
@@ -97,7 +177,7 @@
                         <div class="welcome-details">
                             <p data-aos="fade-up" data-aos-duration="500" data-aos-delay="600">Kepada Yth.</p>
                             <p data-aos="fade-up" data-aos-duration="500" data-aos-delay="600">Bapak/Ibu/Saudara/i</p>
-                            <p class="welcome-guest-name" data-aos="fade-up" data-aos-duration="500" data-aos-delay="700">Nama Tamu</p>
+                            <p class="welcome-guest-name guest-name" data-aos="fade-up" data-aos-duration="500" data-aos-delay="700">Nama Tamu</p>
                             <div class="welcome-open-invitation" data-aos="fade-up" data-aos-duration="500" data-aos-delay="750">
                                 <a href="javascript:;" class="welcome-open-action action-btn" id="startToExplore">
                                     <i class="icon-mail"></i>
@@ -190,6 +270,11 @@
                     <div class="wedding-date" data-aos="zoom-in-up" data-aos-delay="400">
                         <p>Minggu, 23 November 2025</p>
                     </div>
+                    <div class="wedding-details" data-aos="zoom-in-up" data-aos-delay="600">
+                        <p data-aos="fade-up" data-aos-duration="500" data-aos-delay="600">Kepada Yth.</p>
+                        <p data-aos="fade-up" data-aos-duration="500" data-aos-delay="600">Bapak/Ibu/Saudara/i</p>
+                        <p class="wedding-guest-name guest-name" data-aos="fade-up" data-aos-duration="500" data-aos-delay="700">Nama Tamu</p>
+                    </div>
                 </div>
             </div>
             <div class="ornament-area">
@@ -261,77 +346,77 @@
                     
                         <div class="orn-quote-6 right">
                             <div class="image-wrap " data-aos="fade-in" data-aos-duration="1000"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-06.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-6 left ">
                             <div class="image-wrap " data-aos="fade-in" data-aos-duration="1000"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-06.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-5 right">
                             <div class="image-wrap " data-aos="fade-in" data-aos-duration="800"
-                                data-aos-delay="1400">
+                                data-aos-delay="1000">
                                 <img src="assets/images/ornaments/Orn-05.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-5 left ">
                             <div class="image-wrap " data-aos="fade-in" data-aos-duration="800"
-                                data-aos-delay="1400">
+                                data-aos-delay="1000">
                                 <img src="assets/images/ornaments/Orn-05.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-4 right">
                             <div class="image-wrap " data-aos="fade-up" data-aos-duration="800"
-                                data-aos-delay="1300">
+                                data-aos-delay="1000">
                                 <img src="assets/images/ornaments/Orn-04.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-4 left ">
                             <div class="image-wrap " data-aos="fade-up" data-aos-duration="800"
-                                data-aos-delay="1300">
+                                data-aos-delay="1000">
                                 <img src="assets/images/ornaments/Orn-04.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-2 right">
                             <div class="image-wrap " data-aos="fade-up-right" data-aos-duration="800"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-02.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-2 left ">
                             <div class="image-wrap " data-aos="fade-up-right" data-aos-duration="800"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-02.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-3 center ">
                             <div class="image-wrap " data-aos="fade-up-right" data-aos-duration="800"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-03.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-1 right">
                             <div class="image-wrap " data-aos="fade-up-left" data-aos-duration="800"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-01.png"
                                     alt="Ornament">
                             </div>
                         </div>
                         <div class="orn-quote-1 left ">
                             <div class="image-wrap " data-aos="fade-up-left" data-aos-duration="800"
-                                data-aos-delay="1000">
+                                data-aos-delay="700">
                                 <img src="assets/images/ornaments/Orn-01.png"
                                     alt="Ornament">
                             </div>
@@ -350,20 +435,20 @@
 
             <section class="bridegroom-section" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
                 <div class="bridegroom-content">
-                    <div class="bridegroom-header" data-aos="zoom-in" data-aos-duration="1000">
+                    <div class="bridegroom-header" data-aos="zoom-in" data-aos-duration="600">
                         <h2 class="latin-title">Groom & Bride</h2>
                         <p>Dengan memohon Rahmat dan Ridho Allah SWT, kami bermaksud untuk mengundang Bapak/Ibu, Saudara/i untuk menghadiri acara
                         pernikahan kami:</p>
                     </div>
                     <div class="bridegroom-body">
-                        <div class="bridegroom-image" data-aos="fade-left" data-aos-duration="800" data-aos-delay="200">
-                            <img src="assets/images/prewed/groom.jpg" alt="Groom">
+                        <div class="bridegroom-image" data-aos="fade-left" data-aos-duration="600" data-aos-delay="200">
+                            <img src="assets/images/prewed/grm01.jpg" alt="Groom">
                         </div>
                         <div class="bridegroom-caption">
                             <div class="bridegroom-info-data">
-                                <h2 class="latin-title" data-aos="zoom-in-up" data-aos-duration="800" data-aos-delay="200">Fauzi</h2>
-                                <p class="bridegroom-name" data-aos="zoom-in-up" data-aos-duration="800" data-aos-delay="200">Fauzi Ferdiansyah</p>
-                                <p class="bridegroom-parents" data-aos="fade-in" data-aos-duration="800" data-aos-delay="200">
+                                <h2 class="latin-title" data-aos="zoom-in-up" data-aos-duration="600" data-aos-delay="200">Fauzi</h2>
+                                <p class="bridegroom-name" data-aos="zoom-in-up" data-aos-duration="600" data-aos-delay="200">Fauzi Ferdiansyah</p>
+                                <p class="bridegroom-parents" data-aos="fade-in" data-aos-duration="600" data-aos-delay="550">
                                     Putra dari Bapak Edi Supriyadi & Ibu Tita Sutiarsah
                                 </p>
                                 <div class="bridegroom-link-instagram" data-aos="fade-in" data-aos-duration="800" data-aos-delay="200">
@@ -375,19 +460,19 @@
                             </div>
                         </div>
                         <div class="bridegroom-separator">
-                            <div data-aos="fade-up" data-aos-duration="2000" data-aos-delay="500">
+                            <div data-aos="fade-up" data-aos-duration="500" data-aos-delay="400">
                                 <h2 class="bridegroom-separator-text">&amp;</h2>
                             </div>
                         </div>
-                        <div class="bridegroom-image" data-aos="fade-right" data-aos-duration="800" data-aos-delay="200">
-                            <img src="assets/images/prewed/bride.jpg" alt="Bride">
+                        <div class="bridegroom-image" data-aos="fade-right" data-aos-duration="600" data-aos-delay="200">
+                            <img src="assets/images/prewed/brm01.jpg" alt="Bride">
                         </div>
                         <div class="bridegroom-caption">
                             <div class="bridegroom-info-data">
-                                <h2 class="latin-title" data-aos="zoom-in-up" data-aos-duration="800" data-aos-delay="200">Alfira</h2>
-                                <p class="bridegroom-name" data-aos="zoom-in-up" data-aos-duration="800" data-aos-delay="200">Alfira Martadiningsih
+                                <h2 class="latin-title" data-aos="zoom-in-up" data-aos-duration="600" data-aos-delay="200">Alfira</h2>
+                                <p class="bridegroom-name" data-aos="zoom-in-up" data-aos-duration="600" data-aos-delay="200">Alfira Martadiningsih
                                 </p>
-                                <p class="bridegroom-parents" data-aos="fade-in" data-aos-duration="800" data-aos-delay="200">
+                                <p class="bridegroom-parents" data-aos="fade-in" data-aos-duration="600" data-aos-delay="550">
                                     Putra dari Bapak Belly Noveriyanto & Ibu Noviyanti
                                 </p>
                                 <div class="bridegroom-link-instagram" data-aos="fade-in" data-aos-duration="800" data-aos-delay="200">
@@ -402,41 +487,41 @@
                 </div>
             </section>
 
-            <section class="date-section" data-aos="fade-up" data-aos-duration="700" data-aos-delay="100">
+            <section class="date-section" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
 
-                    <div class="date-header" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="100">
+                    <div class="date-header" data-aos="zoom-in" data-aos-duration="600" data-aos-delay="100">
                         <h2 class="latin-title">Save The Date</h2>
                     </div>
                     <div class="date-body">
                         <div class="ornaments-wrapper">
                             <div class="orn-sd-3">
-                                <div class="image-wrap" data-aos="fade-up" data-aos-duration="800" data-aos-delay="800">
+                                <div class="image-wrap" data-aos="fade-up" data-aos-duration="400" data-aos-delay="300">
                                     <img src="assets/images/ornaments/Orn-11.png"
                                         alt="Ornament">
                                 </div>
                             </div>
                             <div class="orn-sd-1">
-                                <div class="image-wrap" data-aos="fade-up-right" data-aos-duration="1000"
-                                    data-aos-delay="800">
+                                <div class="image-wrap" data-aos="fade-up-right" data-aos-duration="600"
+                                    data-aos-delay="300">
                                     <img src="assets/images/ornaments/Orn-09.png"
                                         alt="Ornament">
                                 </div>
                             </div>
                             <div class="orn-sd-5">
-                                <div class="image-wrap" data-aos="fade-up" data-aos-duration="800" data-aos-delay="800">
+                                <div class="image-wrap" data-aos="fade-up" data-aos-duration="400" data-aos-delay="300">
                                     <img src="assets/images/ornaments/Orn-13.png"
                                         alt="Ornament">
                                 </div>
                             </div>
                             <div class="orn-sd-4">
-                                <div class="image-wrap" data-aos="fade-up" data-aos-duration="800" data-aos-delay="800">
+                                <div class="image-wrap" data-aos="fade-up" data-aos-duration="400" data-aos-delay="300">
                                     <img src="assets/images/ornaments/Orn-12.png"
                                         alt="Ornament">
                                 </div>
                             </div>
                             <div class="orn-sd-2">
-                                <div class="image-wrap" data-aos="fade-up-left" data-aos-duration="1000"
-                                    data-aos-delay="800">
+                                <div class="image-wrap" data-aos="fade-up-left" data-aos-duration="600"
+                                    data-aos-delay="300">
                                     <img src="assets/images/ornaments/Orn-10.png"
                                         alt="Ornament">
                                 </div>
@@ -493,21 +578,21 @@
                                     <div class="event-date-wrapper">
                                         <div class="ornaments-wrapper">
                                             <div class="orn-event-head-1 left">
-                                                <div class="image-wrap" data-aos="zoom-in" data-aos-duration="1000"
-                                                    data-aos-delay="800">
+                                                <div class="image-wrap" data-aos="zoom-in" data-aos-duration="600"
+                                                    data-aos-delay="400">
                                                     <img alt="Ornament"
                                                         src="assets/images/ornaments/Orn-14.png">
                                                 </div>
                                             </div>
                                             <div class="orn-event-head-1 right">
-                                                <div class="image-wrap " data-aos="zoom-in" data-aos-duration="1000"
-                                                    data-aos-delay="800">
+                                                <div class="image-wrap " data-aos="zoom-in" data-aos-duration="600"
+                                                    data-aos-delay="400">
                                                     <img alt="Ornament"
                                                         src="assets/images/ornaments/Orn-14.png">
                                                 </div>
                                             </div>
                                         </div>
-                                        <p class="event-day" data-aos="fade-up" data-aos-duration="800" data-aos-delay="150">
+                                        <p class="event-day" data-aos="fade-up" data-aos-duration="600" data-aos-delay="150">
                                             Minggu, 23 November 2025
                                         </p>
                                     </div>
@@ -519,99 +604,99 @@
                         
                                     <div class="ornaments-wrapper">
                                         <div class="orn-event-3">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-17.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-9">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-19.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-7">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-16.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-8">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-20.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-6">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-18.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-5">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-06.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-4">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-11.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-2">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-16.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-14">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-21.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-13">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-20.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-12">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-11.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-11">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-05.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-10">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-06.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-1">
-                                            <div class="image-wrap" data-aos="fade-right" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-right" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     src="assets/images/ornaments/Orn-15.png">
                                             </div>
@@ -653,112 +738,112 @@
                         
                                     <div class="ornaments-wrapper">
                                         <div class="orn-event-3">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-17.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-17.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-9">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-19.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-19.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-7">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-16.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-16.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-8">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-20.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-20.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-6">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-18.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-18.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-5">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-06.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-06.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-4">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-11.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-11.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-2">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-16.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-16.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-14">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-21.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-21.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-13">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-20.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-20.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-12">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-11.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-11.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-11">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-05.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-05.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-10">
-                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-left" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-06.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-06.png">
                                             </div>
                                         </div>
                                         <div class="orn-event-1">
-                                            <div class="image-wrap" data-aos="fade-right" data-aos-duration="1000"
-                                                data-aos-delay="800">
+                                            <div class="image-wrap" data-aos="fade-right" data-aos-duration="600"
+                                                data-aos-delay="400">
                                                 <img alt="Ornament"
                                                     data-cfsrc="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-15.png"
                                                     src="https://annakristoff.katsudoto.id/media/template/exclusive/hanna/original/Orn-15.png">
@@ -801,107 +886,121 @@
                 </div>
             </section>
 
-            <section class="rsvp-section" data-aos="fade-up" data-aos-duration="700" data-aos-delay="100">
+            <section class="rsvp-section" data-aos="fade-up" data-aos-duration="800" data-aos-delay="500">
                 <div class="rsvp-content">
+
+                    <!-- HEADER -->
                     <div class="rsvp-header">
-                        <h2 class="latin-title" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="100">
-                            Rsvp
-                        </h2>
-                        <div class="rsvp-info">
-                            <p class="info-text">
-                                Mohon konfirmasi kehadiran Anda sebelum,
-                            </p>
-                            <p class="info-date">
-                                Minggu, 23 November 2025
-                            </p>
+                    <h2 class="latin-title" data-aos="fade-up" data-aos-duration="700" data-aos-delay="200">
+                        RSVP
+                    </h2>
+                    <div class="rsvp-info">
+                        <p class="info-text">Mohon konfirmasi kehadiran Anda sebelum,</p>
+                        <p class="info-date">Minggu, 23 November 2025</p>
+                    </div>
+                    </div>
+
+                    <!-- BODY -->
+                    <div class="rsvp-body">
+
+                    <!-- ✅ DESCRIPTION (MUNCUL JIKA SUDAH RSVP) -->
+                    <div class="rsvp-description" style="display:none">
+                        <div class="rsvp-message">
+                            <div class="rsvp-message-content">
+
+                                <h4 class="rsvp-message-title status-title">
+                                    <i class="icon-present-rsvp status-icon"></i>
+                                    <span class="status-title-text">Status Kehadiran</span>
+                                </h4>
+
+                                <p class="rsvp-message-text status-desc">
+                                    <!-- diisi dinamis via JS -->
+                                </p>
+
+                            </div>
+                        </div>
+
+                        <div class="rsvp-action">
+                            <button class="action-btn action-rsvp">
+                                <i class="icon-confirm-rsvp"></i>
+                                Ubah Kehadiran
+                            </button>
                         </div>
                     </div>
-                    <div class="rsvp-body">
-                        <div class="rsvp-description">
-                            <div class="rsvp-message">
-                                <div class="rsvp-message-content">
-                                    <h4 class="rsvp-message-title">
-                                        <i class="icon-present-rsvp"></i>
-                                        Akan Hadir
-                                    </h4>
-                                    <p class="rsvp-message-text">
-                                        Yay, Terima kasih atas kehadirannya... <br> Sampai bertemu di acara nanti.
-                                    </p>
+
+
+                    <!-- ✅ FORM (MUNCUL SAAT BELUM RSVP ATAU “UBAH”) -->
+                    <div class="rsvp-form">
+                        <form id="rsvp-form-data">
+
+                        <!-- Nama -->
+                        <div class="form-input">
+                            <input
+                            class="form-input-field"
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Nama Anda"
+                            required
+                            autocomplete="off"
+                            />
+                        </div>
+
+                        <!-- Status hadir -->
+                        <div class="rsvp-status-wrap">
+                            <p class="rsvp-status-caption">Apakah Anda akan hadir?</p>
+                            <div class="rsvp-confirm-wrap">
+
+                            <label>
+                                <input type="radio" name="confirm" value="yes" />
+                                <div class="rsvp-confirm-btn going">
+                                <i class="icon-confirm-yes-rsvp"></i>
+                                Akan Hadir
                                 </div>
-                            </div>
-                            <div class="rsvp-action">
-                                <button class="action-btn action-rsvp">
-                                    <i class="icon-confirm-rsvp"></i>
-                                    Ubah Kehadiran
-                                </button>
+                            </label>
+
+                            <label>
+                                <input type="radio" name="confirm" value="no" />
+                                <div class="rsvp-confirm-btn not-going">
+                                <i class="icon-confirm-no-rsvp"></i>
+                                Tidak Hadir
+                                </div>
+                            </label>
+
                             </div>
                         </div>
-                        <div class="rsvp-form">
-                            <form id="rsvp-form-data">
-                                <!-- Nama -->
-                                <div class="form-input">
-                                    <input
-                                        class="form-input-field"
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        placeholder="Isikan Nama Anda"
-                                        required
-                                        autocomplete="off"
-                                    />
-                                </div>
 
-                                <!-- Konfirmasi kehadiran -->
-                                <div class="rsvp-status-wrap">
-                                    <p class="rsvp-status-caption">Apakah Anda Akan Hadir di Acara Pernikahan Ini?</p>
-                                    <div class="rsvp-confirm-wrap">
-                                        <label>
-                                            <input type="radio" name="confirm" value="yes" />
-                                            <div class="rsvp-confirm-btn going">
-                                                <i class="icon-confirm-yes-rsvp"></i>
-                                                Akan Hadir
-                                            </div>
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="confirm" value="no" />
-                                            <div class="rsvp-confirm-btn not-going">
-                                                <i class="icon-confirm-no-rsvp"></i>
-                                                Tidak Hadir
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <!-- Jumlah orang -->
-                                <div class="rsvp-amount-wrap">
-                                    <p class="rsvp-amount-caption">Jumlah Orang yang Akan Datang</p>
-                                    <div class="rsvp-amount-controller">
-                                        <button type="button" class="toggle-btn minus">−</button>
-                                        <input
-                                        type="text"
-                                        name="people"
-                                        id="people"
-                                        value="1"
-                                        min="1"
-                                        max="2"
-                                        readonly
-                                        />
-                                        <button type="button" class="toggle-btn plus">+</button>
-                                    </div>
-                                </div>
-
-                                <!-- Tombol konfirmasi -->
-                                <div class="rsvp-confirm-wrap rsvp-confirm-btn-wrap">
-                                    <button type="submit" class="rsvp-confirm-btn confirm action-btn">
-                                        <i class="icon-plane"></i>
-                                        Kirim Konfirmasi
-                                    </button>
-                                </div>
-                            </form>
+                        <!-- Jumlah orang -->
+                        <div class="rsvp-amount-wrap">
+                            <p class="rsvp-amount-caption">Jumlah Orang Yang Akan Datang</p>
+                            <div class="rsvp-amount-controller">
+                            <button type="button" class="toggle-btn minus">−</button>
+                            <input
+                                type="text"
+                                name="people"
+                                id="people"
+                                value="1"
+                                readonly
+                            />
+                            <button type="button" class="toggle-btn plus">+</button>
+                            </div>
                         </div>
+
+                        <!-- Kirim -->
+                        <div class="rsvp-confirm-wrap rsvp-confirm-btn-wrap">
+                            <button type="submit" class="rsvp-confirm-btn confirm action-btn">
+                            <i class="icon-plane"></i>
+                            Kirim Konfirmasi
+                            </button>
+                        </div>
+
+                        </form>
+                    </div>
+
                     </div>
                 </div>
             </section>
+
 
             <section class="photo-section" data-aos="fade-up" data-aos-duration="700" data-aos-delay="150">
                 <div class="photo-content">
@@ -910,30 +1009,51 @@
                     </div>
                     <div class="photo-body">
                         <div id="lightgallery" class="gallery-photos">
-                            <a href="assets/images/prewed/MLK02905-1.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK02905-1.jpg" alt="Alfira & Fauzi 1" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK02974-2.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK02974-2.jpg" alt="Alfira & Fauzi 2" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK03265-3.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK03265-3.jpg" alt="Alfira & Fauzi 3" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK03238-4.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK03238-4.jpg" alt="Alfira & Fauzi 4" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK03256-5.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK03256-5.jpg" alt="Alfira & Fauzi 5" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK03258-6.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK03258-6.jpg" alt="Alfira & Fauzi 6" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK03284-7.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK03284-7.jpg" alt="Alfira & Fauzi 7" class="img-photo">
-                            </a>
-                            <a href="assets/images/prewed/MLK03285-8.jpg" data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
-                                <img src="assets/images/prewed/MLK03285-8.jpg" alt="Alfira & Fauzi 8" class="img-photo">
-                            </a>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK02905-1.jpg">
+                                    <img src="assets/images/prewed/MLK02905-1.jpg" alt="Alfira & Fauzi 1" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK02974-2.jpg">
+                                    <img src="assets/images/prewed/MLK02974-2.jpg" alt="Alfira & Fauzi 2" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03265-3.jpg">
+                                    <img src="assets/images/prewed/MLK03265-3.jpg" alt="Alfira & Fauzi 3" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03238-4.jpg">
+                                    <img src="assets/images/prewed/MLK03238-4.jpg" alt="Alfira & Fauzi 4" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03256-5.jpg">
+                                    <img src="assets/images/prewed/MLK03256-5.jpg" alt="Alfira & Fauzi 5" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03258-6.jpg">
+                                    <img src="assets/images/prewed/MLK03258-6.jpg" alt="Alfira & Fauzi 6" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03284-7.jpg">
+                                    <img src="assets/images/prewed/MLK03284-7.jpg" alt="Alfira & Fauzi 7" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03285-8.jpg">
+                                    <img src="assets/images/prewed/MLK03285-8.jpg" alt="Alfira & Fauzi 8" class="img-photo">
+                                </a>
+                            </span>
+                            <span data-aos="zoom-in" data-aos-duration="700" data-aos-delay="150">
+                                <a href="assets/images/prewed/MLK03285-8.jpg">
+                                    <img src="assets/images/prewed/MLK03285-8.jpg" alt="Alfira & Fauzi 8" class="img-photo">
+                                </a>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -1115,6 +1235,8 @@
                                 <div class="form-wish">
                                     <input type="text" class="form-input-field wish-input" id="nama" name="nama" placeholder="Isikan Nama Anda" required>
                                     <textarea id="pesan" class="form-input-field wish-input" name="pesan" placeholder="Berikan Ucapan Terbaik" rows="4" required></textarea>
+                                    <!-- Area sticker terpilih (tampil di bawah textarea komentar) -->
+                                    <div id="selectedStickers" class="selected-stickers"></div>
                                     <button class="btn-sticker" type="button">
                                         <i class="icon-emoticon"></i>
                                         Sticker
@@ -1302,16 +1424,33 @@
                         <p>23.11.2025</p>
                     </div>
                 </div>
-            </section>
-
-            <section class="footer" id="footer-to-top">
-                <div class="footer-inner">
-                    <p>By Alfira & Fauzi</p>
-                    <i class="icon-up"></i>
-                </div>
+                <section class="footer" id="footer-to-top">
+                    <div class="footer-inner">
+                        <p>By Alfira & Fauzi</p>
+                        <i class="icon-up"></i>
+                    </div>
+                </section>
             </section>
         </main>
     </div>
+
+    <!-- Popup Sticker Fullscreen -->
+    <div id="stickerPopup" class="sticker-popup" aria-hidden="true" inert>
+        <div class="sticker-popup-inner">
+            <button class="popup-close">&times;</button>
+
+            <h3 class="popup-title">Pilih Sticker</h3>
+
+            <div class="sticker-popup-body">
+                <div id="stickerGrid" class="sticker-grid"></div>
+            </div>
+
+            <div class="popup-footer">
+                <button id="chooseStickers" class="action-btn">Pilih Sticker</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- JavaScript Libraries - CDN untuk library besar dengan optimasi loading -->
     
