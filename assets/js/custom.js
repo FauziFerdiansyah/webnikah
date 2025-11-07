@@ -2203,7 +2203,11 @@ const StickerPopupManager = {
 
   /* ===== RENDER GRID ===== */
   renderGrid() {
-    const randomList = this.shuffle([...this.stickerList]);
+    const randomList = [...this.stickerList]
+    .map(value => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
+
     this.grid.innerHTML = randomList
       .map(src => `
         <div class="sticker-item ${this.selectedSticker === src ? 'selected' : ''}" data-src="${src}">
