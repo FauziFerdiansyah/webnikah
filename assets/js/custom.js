@@ -1,7 +1,7 @@
 /**
  * PRELOADER MANAGER
- * Mengelola tampilan preloader untuk memastikan durasi minimal
- * dan pengalaman pengguna yang mulus.
+ * Mengelola tampilan preloader dengan durasi minimal 2 detik dan maksimal 4 detik.
+ * Animasi fade-up yang halus tanpa efek blink.
  */
 const PreloaderManager = {
   init() {
@@ -12,25 +12,36 @@ const PreloaderManager = {
     }
 
     const startTime = Date.now();
-    const minDisplayTime = 3000; // 3 detik
+    const minDisplayTime = 2000; // 2 detik minimal
+    const maxDisplayTime = 4000; // 4 detik maksimal
+
+    // Timeout untuk maksimal 4 detik
+    const maxTimeout = setTimeout(() => {
+      this.hide(preloader);
+    }, maxDisplayTime);
 
     window.addEventListener('load', () => {
       const elapsedTime = Date.now() - startTime;
-      const remainingTime = minDisplayTime - elapsedTime;
+      const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
 
-      if (remainingTime > 0) {
-        setTimeout(() => this.hide(preloader), remainingTime);
-      } else {
+      // Clear timeout maksimal jika load lebih cepat
+      clearTimeout(maxTimeout);
+
+      // Tunggu sisa waktu minimal atau langsung hide jika sudah lewat 2 detik
+      setTimeout(() => {
         this.hide(preloader);
-      }
+      }, remainingTime);
     });
 
-    console.log('⏳ PreloaderManager initialized');
+    console.log('⏳ PreloaderManager initialized (2-4 detik)');
   },
 
   hide(preloader) {
+    if (!preloader || preloader.classList.contains('hidden')) return;
+    
     preloader.classList.add('hidden');
-    // Hapus dari DOM setelah transisi selesai agar tidak mengganggu
+    
+    // Hapus dari DOM setelah transisi selesai
     preloader.addEventListener('transitionend', () => {
       if (preloader.parentNode) {
         preloader.parentNode.removeChild(preloader);
