@@ -2113,6 +2113,30 @@ function renderRSVPDescription(status, count) {
     }
   };
 
+  // Scroll lock helpers for modals
+  function lockBodyScroll() {
+    const rightSide = document.querySelector(".right-side");
+    if (rightSide) {
+      rightSide.style.overflow = "hidden";
+      rightSide.style.overflowY = "hidden";
+      rightSide.style.overscrollBehavior = "none";
+    }
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+  }
+
+  function unlockBodyScroll() {
+    const rightSide = document.querySelector(".right-side");
+    if (rightSide) {
+      rightSide.style.overflowY = "auto";
+      rightSide.style.overflowX = "hidden";
+      rightSide.style.overscrollBehavior = "";
+      void rightSide.offsetHeight; // force reflow
+    }
+    document.body.style.overflow = "";
+    document.body.style.touchAction = "";
+  }
+
 
 /* ==========================================================
    STICKER POPUP MANAGER — FIXED VERSION (NO ARIA WARNING)
@@ -2190,6 +2214,9 @@ const StickerPopupManager = {
     document.activeElement?.blur();
     this.popup.setAttribute("tabindex", "-1");
     this.popup.focus();
+
+    // Lock background scrolling while popup is open
+    lockBodyScroll();
   },
 
   close() {
@@ -2199,6 +2226,9 @@ const StickerPopupManager = {
     this.popup.setAttribute("inert", "");
 
     this.selectedSticker = this.selectedSticker || null;
+
+    // Restore background scrolling
+    unlockBodyScroll();
   },
 
   /* ===== RENDER GRID ===== */
@@ -2389,6 +2419,8 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
         popup.classList.add("open");
         popup.removeAttribute("inert");
         document.activeElement?.blur();
+        // Lock scrolling when popup opens
+        lockBodyScroll();
         return;
       }
 
@@ -2419,6 +2451,8 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
       popup.classList.add("open");
       popup.removeAttribute("inert");
       document.activeElement?.blur();
+      // Lock scrolling when popup opens
+      lockBodyScroll();
     },
 
     closeWishPopup() {
@@ -2426,6 +2460,8 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
       if (popup) {
         popup.classList.remove("open");
         popup.setAttribute("inert", "");
+        // Restore scrolling when popup closes
+        unlockBodyScroll();
       }
     },
 
