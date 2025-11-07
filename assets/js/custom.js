@@ -1456,7 +1456,7 @@ const CustomInitializer = {
         slideEndAnimation: true,
         hideControlOnEnd: false,
         mousewheel: false,
-        getCaptionFromTitleOrAlt: true,
+        getCaptionFromTitleOrAlt: false,
         appendCounterTo: '.lg-toolbar',
         dynamic: false,
         dynamicEl: [],
@@ -1722,8 +1722,6 @@ $("#startToExplore").on("click", function (e) {
   const $welcomeSection = $(".welcome-section");
   const $welcomeContent = $(".welcome-content");
 
-  $rightSide.css("overflow-y", "hidden");
-
   // Fade konten welcome
   $welcomeContent.css({
     transition: "opacity 0.6s ease, transform 0.6s ease",
@@ -1739,16 +1737,42 @@ $("#startToExplore").on("click", function (e) {
       transform: "translate3d(0, -100%, 0)",
     });
 
-    // Setelah welcome keluar layar
+    // Setelah welcome keluar layar - CRITICAL TIMING
     setTimeout(() => {
-      $welcomeSection.css("visibility", "hidden");
-      $rightSide.css("overflow-y", "auto");
-
-      // Jalankan ulang animasi hero
-      replayHeroAOS();
-
-      // Kalau ingin tetap sinkron dengan AOS internal:
-      if (typeof AOS !== "undefined") AOS.refresh();
+      // 1. Remove dari DOM completely
+      $welcomeSection.css({
+        "visibility": "hidden",
+        "display": "none",
+        "position": "absolute",
+        "pointer-events": "none"
+      });
+      
+      // 2. Restore scroll IMMEDIATELY dengan force
+      $rightSide[0].style.overflow = 'auto';
+      $rightSide[0].style.overflowY = 'auto';
+      $rightSide[0].style.overflowX = 'hidden';
+      
+      // 3. Clear body styles that block scroll
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('touch-action');
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('width');
+      document.body.style.removeProperty('height');
+      
+      // 4. Force browser reflow - CRITICAL!
+      void $rightSide[0].scrollTop;
+      void $rightSide[0].clientHeight;
+      
+      // 5. Trigger pointer events immediately
+      $rightSide[0].style.pointerEvents = 'auto';
+      
+      // 6. AOS refresh dengan minimal delay
+      setTimeout(() => {
+        replayHeroAOS();
+        if (typeof AOS !== "undefined") {
+          AOS.refreshHard();
+        }
+      }, 10);
 
     }, 800);
   }, 600);
@@ -2179,7 +2203,8 @@ const StickerPopupManager = {
 
   /* ===== RENDER GRID ===== */
   renderGrid() {
-    this.grid.innerHTML = this.stickerList
+    const randomList = this.shuffle([...this.stickerList]);
+    this.grid.innerHTML = randomList
       .map(src => `
         <div class="sticker-item ${this.selectedSticker === src ? 'selected' : ''}" data-src="${src}">
           <img src="${src}">
@@ -2211,7 +2236,7 @@ const StickerPopupManager = {
     container.innerHTML = `
       <div class="selected-sticker-item" data-src="${this.selectedSticker}">
         <img src="${this.selectedSticker}">
-        <button type="button" class="remove-sticker">&times;</button>
+        <button type="button" class="remove-sticker"><i class="icon-times"></i></button>
       </div>
     `;
 
@@ -2229,6 +2254,241 @@ $(document).on("click", ".remove-sticker", function (e) {
 document.addEventListener("mainInitComplete", () => StickerPopupManager.init());
 document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
 
+
+/* ======================================================
+  COMMENT / WISH MANAGER — SIMPAN & RENDER
+   ====================================================== */
+
+  const WishManager = {
+    async submitWish() {
+      if (!window.db || !window.firestore) {
+        console.warn("⏳ Firebase belum siap");
+        return;
+      }
+
+      const name = $("#nama").val().trim();
+      const comment = $("#pesan").val().trim();
+
+      const stickerDOM = $("#selectedStickers .selected-sticker-item img");
+      const sticker = stickerDOM.length ? stickerDOM.attr("src") : ""; 
+      // Kita simpan nama file aja
+      const stickerFile = sticker ? sticker.split("/").pop() : "";
+
+      if (!name || !comment) {
+        window.showSnackbar("Nama & Ucapan wajib diisi");
+        return;
+      }
+
+      const now = window.firestore.serverTimestamp();
+
+      try {
+        await window.firestore.addDoc(
+          window.firestore.collection(window.db, "comments"),
+          {
+            name,
+            comment,
+            sticker: stickerFile,
+            createdAt: now,
+            guestId: window.currentGuestId || "",
+          }
+        );
+
+        window.showSnackbar("Ucapan berhasil dikirim!");
+
+        $("#wish-form")[0].reset();
+        $("#selectedStickers").html("");
+
+        // Reload list
+        this.loadWishes();
+
+      } catch (err) {
+        console.error("❌ Gagal kirim ucapan:", err);
+        window.showSnackbar("Gagal mengirim ucapan");
+      }
+    },
+
+    /* ============================
+      LOAD WISHES (ORDER DESC)
+      ============================ */
+    async loadWishes() {
+      if (!window.db || !window.firestore) return;
+
+      const q = window.firestore.query(
+        window.firestore.collection(window.db, "comments"),
+        window.firestore.orderBy("createdAt", "desc")
+      );
+
+      const snap = await window.firestore.getDocs(q);
+      this.render(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    },
+
+    /* ============================
+      RENDER WISHES TO UI
+      ============================ */
+    render(list) {
+      const container = document.querySelector(".wish-list");
+      container.innerHTML = "";
+
+      if (!list.length) {
+        container.innerHTML = `<p class="empty-wish">Belum ada ucapan.</p>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="wish-comment-counter-header"><h2 class="wish-comment-count">(${list.length}) Ucapan & Doa</h2><div class="wish-comment-action"><i class="icon-see-wish"></i>Lihat semua</div></div>`;
+
+      list.forEach(item => {
+        const stickerHTML = item.sticker
+          ? `<div class="wish-sticker"><img src="assets/images/sticker/${item.sticker}"></div>`
+          : "";
+
+        container.innerHTML += `
+          <div class="wish-item">
+            <div class="wish-comment-header">
+              <div class="wish-comment-name">
+              <i class="icon-guest"></i>
+              ${item.name}</div>
+            </div>
+
+            <div class="wish-comment-text">${item.comment}</div>
+
+            ${stickerHTML}
+            ${this.formatTime(item.createdAt)}
+          </div>
+        `;
+      });
+
+      // Store list untuk popup
+      this.allWishes = list;
+      
+      // Setup event listener untuk "Lihat semua"
+      const viewAllButton = container.querySelector(".wish-comment-action");
+      if (viewAllButton) {
+        viewAllButton.addEventListener("click", () => this.showWishPopup());
+      }
+    },
+
+    showWishPopup() {
+      const popup = document.getElementById("wishPopup");
+      const popupList = document.getElementById("wishPopupList");
+      
+      if (!popup || !popupList) {
+        console.warn("⚠️ Wish popup elements not found");
+        return;
+      }
+
+      // Clear previous content
+      popupList.innerHTML = "";
+
+      // Check if there are wishes
+      if (!this.allWishes || this.allWishes.length === 0) {
+        popupList.innerHTML = `<div class="wish-popup-empty">Belum ada ucapan.</div>`;
+        popup.classList.add("open");
+        popup.removeAttribute("inert");
+        document.activeElement?.blur();
+        return;
+      }
+
+      // Render all wishes in popup
+      this.allWishes.forEach(item => {
+        const stickerHTML = item.sticker
+          ? `<div class="wish-sticker"><img src="assets/images/sticker/${item.sticker}"></div>`
+          : "";
+
+        const wishElement = document.createElement("div");
+        wishElement.className = "wish-item";
+        wishElement.innerHTML = `
+          <div class="wish-comment-header">
+            <div class="wish-comment-name">
+              <i class="icon-guest"></i>
+              ${item.name}
+            </div>
+          </div>
+          <div class="wish-comment-text">${item.comment}</div>
+          ${stickerHTML}
+          ${this.formatTime(item.createdAt)}
+        `;
+        
+        popupList.appendChild(wishElement);
+      });
+
+      // Show popup
+      popup.classList.add("open");
+      popup.removeAttribute("inert");
+      document.activeElement?.blur();
+    },
+
+    closeWishPopup() {
+      const popup = document.getElementById("wishPopup");
+      if (popup) {
+        popup.classList.remove("open");
+        popup.setAttribute("inert", "");
+      }
+    },
+
+    formatTime(ts) {
+      if (!ts) return "";
+      const date = ts.toDate();
+      const now = new Date();
+      const diffMs = now - date;
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      const diffWeeks = Math.floor(diffDays / 7);
+      const diffMonths = Math.floor(diffDays / 30);
+      const diffYears = Math.floor(diffDays / 365);
+
+      let relativeTime = "";
+
+      if (diffSecs < 60) {
+        relativeTime = diffSecs === 0 ? "baru saja" : `${diffSecs} detik yang lalu`;
+      } else if (diffMins < 60) {
+        relativeTime = diffMins === 1 ? "1 menit yang lalu" : `${diffMins} menit yang lalu`;
+      } else if (diffHours < 24) {
+        relativeTime = diffHours === 1 ? "1 jam yang lalu" : `${diffHours} jam yang lalu`;
+      } else if (diffDays < 7) {
+        relativeTime = diffDays === 1 ? "1 hari yang lalu" : `${diffDays} hari yang lalu`;
+      } else if (diffWeeks < 4) {
+        relativeTime = diffWeeks === 1 ? "1 minggu yang lalu" : `${diffWeeks} minggu yang lalu`;
+      } else if (diffMonths < 12) {
+        relativeTime = diffMonths === 1 ? "1 bulan yang lalu" : `${diffMonths} bulan yang lalu`;
+      } else {
+        relativeTime = diffYears === 1 ? "1 tahun yang lalu" : `${diffYears} tahun yang lalu`;
+      }
+
+      const fullDate = date.toLocaleString("id-ID", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      return `<span class="wish-comment-time" title="${fullDate}">${relativeTime}</span>`;
+    }
+  };
+  
+
+  $("#wish-form").on("submit", function (e) {
+    e.preventDefault();
+    WishManager.submitWish();
+  });
+
+  // Setup wish popup close button
+  $(document).on("click", "#wishPopup .popup-close", function() {
+    WishManager.closeWishPopup();
+  });
+
+  // Close popup when clicking outside
+  $(document).on("click", function(e) {
+    const popup = document.getElementById("wishPopup");
+    if (popup && $(e.target).is("#wishPopup")) {
+      WishManager.closeWishPopup();
+    }
+  });
+
 /**
  * ================================
  * FIRE ON MAIN INIT COMPLETE
@@ -2236,6 +2496,7 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
  */
 
   document.addEventListener("mainInitComplete", () => {
+    setTimeout(() => WishManager.loadWishes(), 500);
     loadGuestInfo().then(() => {
 
       applyDynamicRSVPUI();
