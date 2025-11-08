@@ -56,7 +56,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <!-- lightGallery CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/css/lightgallery.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/css/lightgallery-bundle.min.css">
 
     <!-- Custom CSS - Project specific styles -->
     <link rel="stylesheet" href="assets/css/custom.css">
@@ -179,10 +179,10 @@
                             <p data-aos="fade-up" data-aos-duration="500" data-aos-delay="600">Bapak/Ibu/Saudara/i</p>
                             <p class="welcome-guest-name guest-name" data-aos="fade-up" data-aos-duration="500" data-aos-delay="700">Nama Tamu</p>
                             <div class="welcome-open-invitation" data-aos="fade-up" data-aos-duration="500" data-aos-delay="750">
-                                <a href="javascript:;" class="welcome-open-action action-btn" id="startToExplore">
+                                <button type="button" class="welcome-open-action action-btn" id="startToExplore">
                                     <i class="icon-mail"></i>
                                     Buka Undangan
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1460,6 +1460,14 @@
         </div>
     </div>
 
+    <audio id="backsound" preload="auto" loop playsinline>
+        <source src="assets/music/backsound.mp3" type="audio/mpeg" />
+    </audio>
+
+    <!-- Audio control circle -->
+    <button id="audioCircle" class="audio-circle" type="button" aria-label="Audio control">
+        <i class="icon-audio"></i>
+    </button>
 
     <!-- JavaScript Libraries - CDN untuk library besar dengan optimasi loading -->
     
@@ -1473,7 +1481,7 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
     
     <!-- lightGallery JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.1/lightgallery.min.js" defer></script>
     
     <!-- Main JavaScript - Library initialization dengan defer -->
     <script src="assets/js/main.js" defer></script>

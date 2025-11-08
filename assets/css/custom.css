@@ -42,6 +42,66 @@ File ini berisi:
   pointer-events: none;
 }
 
+.icon-audio {
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KCTxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSIgLz4KCTxwYXRoIGZpbGw9IiM5YmE0OTgiIGQ9Ik0yMSAzdjEyLjVhMy41IDMuNSAwIDAgMS0zLjUgMy41YTMuNSAzLjUgMCAwIDEtMy41LTMuNWEzLjUgMy41IDAgMCAxIDMuNS0zLjVjLjU0IDAgMS4wNS4xMiAxLjUuMzRWNi40N0w5IDguNnY4LjlBMy41IDMuNSAwIDAgMSA1LjUgMjFBMy41IDMuNSAwIDAgMSAyIDE3LjVBMy41IDMuNSAwIDAgMSA1LjUgMTRjLjU0IDAgMS4wNS4xMiAxLjUuMzRWNnoiIC8+Cjwvc3ZnPg==");
+  background-size: cover;
+  background-position: center;
+  width: 18px;
+  height: 18px;
+}
+
+.icon-audio-off {
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KCTxyZWN0IHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0ibm9uZSIgLz4KCTxwYXRoIGZpbGw9IiM5YmE0OTgiIGQ9Ik0yIDUuMjdMMy4yOCA0TDIwIDIwLjcyTDE4LjczIDIyTDkgMTIuMjd2NS4yM0EzLjUgMy41IDAgMCAxIDUuNSAyMUEzLjUgMy41IDAgMCAxIDIgMTcuNUEzLjUgMy41IDAgMCAxIDUuNSAxNGMuNTQgMCAxLjA1LjEyIDEuNS4zNHYtNC4wN3pNMjEgM3YxMi41YzAgMS0uNDMgMS45Mi0xLjEyIDIuNTZsLTQuOTQtNC45NGMuNjQtLjY5IDEuNTYtMS4xMiAyLjU2LTEuMTJjLjU0IDAgMS4wNS4xMiAxLjUuMzRWNi40N2wtOC44MyAxLjg4bC0yLjUxLTIuNTF6IiAvPgo8L3N2Zz4=");
+  background-size: cover;
+  background-position: center;
+  width: 18px;
+  height: 18px;
+}
+
+/* ... existing code ... */
+.audio-circle {
+  position: fixed;
+  bottom: var(--spacing-md);
+  left: var(--spacing-md);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-light-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 5px 10px -5px rgba(0, 0, 0, 0.2);
+  z-index: 9998;
+  will-change: transform;
+  border: 2px solid var(--bg-primary);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.audio-circle:hover {
+  opacity: 1;
+}
+
+.audio-circle i {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.audio-circle.playing {
+  animation: vinylRotate 6s linear infinite;
+}
+
+@keyframes vinylRotate {
+  from {
+    transform: rotate(0deg) translateZ(0);
+  }
+  to {
+    transform: rotate(360deg) translateZ(0);
+  }
+}
+
 
 /* ===== BASE RESET & OPTIMIZATIONS ===== */
 
@@ -2762,105 +2822,6 @@ Menggunakan fixed positioning dan hardware acceleration
 .signature strong {
   color: var(--secondary-color);
   font-size: var(--font-size-xl);
-}
-
-/* ===== MUSIC PLAYER ===== */
-
-/* 
-Music player di pojok kiri bawah dengan animasi smooth
-Menggunakan fixed positioning dan hardware acceleration
-*/
-.music-player {
-  position: fixed;
-  bottom: var(--spacing-xl);
-  /* Hardware acceleration */
-  transform: var(--gpu-acceleration);
-}
-
-/* ===== MUSIC PLAYER ===== */
-
-/* 
-Music player di pojok kiri bawah dengan animasi smooth
-Menggunakan fixed positioning dan hardware acceleration
-*/
-.music-player {
-  position: fixed;
-  bottom: var(--spacing-xl);
-  left: var(--spacing-xl);
-  z-index: var(--z-fixed);
-  /* Performance optimizations */
-  will-change: transform;
-  transform: var(--gpu-acceleration);
-  backface-visibility: var(--backface-visibility);
-}
-
-/* 
-Music player button dengan animasi rotasi yang smooth
-Menggunakan CSS animations untuk performa optimal
-*/
-.music-player-btn {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-full);
-  background: var(--bg-gradient);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
-  /* Performance optimizations */
-  will-change: transform, box-shadow;
-  transform: var(--gpu-acceleration);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-}
-
-.music-player-btn:hover {
-  transform: scale(1.1) translateZ(0);
-  box-shadow: var(--shadow-xl);
-}
-
-/* 
-Vinyl disc dengan animasi rotasi yang smooth
-Menggunakan CSS animation dengan hardware acceleration
-*/
-.vinyl-disc {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  background: radial-gradient(circle, var(--secondary-color) 30%, var(--gray-800) 30%, var(--gray-800) 70%, var(--secondary-color) 70%);
-  position: relative;
-  /* Performance optimizations */
-  will-change: transform;
-  transform: var(--gpu-acceleration);
-  transition: var(--transition-transform);
-}
-
-/* Center hole untuk vinyl disc */
-.vinyl-disc::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  background: var(--gray-800);
-  border-radius: var(--radius-full);
-  transform: translate(-50%, -50%) translateZ(0);
-}
-
-/* Animasi rotasi untuk vinyl disc */
-.vinyl-disc.playing {
-  animation: vinylRotate 3s linear infinite;
-}
-
-@keyframes vinylRotate {
-  from {
-    transform: rotate(0deg) translateZ(0);
-  }
-  to {
-    transform: rotate(360deg) translateZ(0);
-  }
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

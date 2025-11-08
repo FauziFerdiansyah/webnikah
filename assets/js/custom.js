@@ -59,380 +59,12 @@ PreloaderManager.init();
 CUSTOM.JS - PROJECT SPECIFIC FUNCTIONALITY
 ===========================================
 File ini berisi:
-1. Music player dengan animasi vinyl disc
-2. Custom animations dan interactions
-3. RSVP form handling
-4. Smooth scrolling optimizations
-5. Performance optimizations khusus proyek
+1. Custom animations dan interactions
+2. RSVP form handling
+3. Smooth scrolling optimizations
+4. Performance optimizations khusus proyek
 ===========================================
 */
-
-/**
- * MUSIC PLAYER MANAGER
- * Mengelola pemutaran musik dengan animasi vinyl disc
- */
-const MusicPlayerManager = {
-  // Audio element dan state
-  audio: null,
-  isPlaying: false,
-  isInitialized: false,
-  vinylElement: null,
-  playerButton: null,
-  
-  // Configuration
-  config: {
-    audioPath: '/assets/music/10cm-lovely-runner-spring-snow-karaoke-version-yumiella-dolkness-1749456684-412d8f467971a1df1265b76b.mp3',
-    volume: 0.7,
-    fadeInDuration: 2000,
-    fadeOutDuration: 1000,
-    autoPlay: true,
-    loop: true
-  },
-  
-  /**
-   * Initialize music player
-   */
-  init() {
-    console.log('🎵 Initializing music player...');
-    
-    try {
-      // Create audio element
-      this.createAudioElement();
-      
-      // Create player UI
-      // this.createPlayerUI();
-      
-      // Setup event listeners
-      this.setupEventListeners();
-      
-      // Setup audio events
-      this.setupAudioEvents();
-      
-      // Auto play jika diizinkan
-      this.handleAutoPlay();
-      
-      this.isInitialized = true;
-      console.log('✅ Music player initialized successfully');
-      
-    } catch (error) {
-      console.error('❌ Music player initialization failed:', error);
-    }
-  },
-  
-  /**
-   * Create audio element dengan optimasi
-   */
-  createAudioElement() {
-    this.audio = new Audio();
-    this.audio.src = this.config.audioPath;
-    this.audio.volume = this.config.volume;
-    this.audio.loop = this.config.loop;
-    this.audio.preload = 'metadata'; // Preload metadata saja untuk performa
-    
-    // Optimasi untuk mobile
-    this.audio.setAttribute('playsinline', true);
-    this.audio.setAttribute('webkit-playsinline', true);
-  },
-  
-  /**
-   * Create player UI elements
-   */
-  createPlayerUI() {
-    // Create main container
-    const playerContainer = document.createElement('div');
-    playerContainer.className = 'music-player';
-    playerContainer.setAttribute('aria-label', 'Music Player');
-    
-    // Create player button
-    this.playerButton = document.createElement('button');
-    this.playerButton.className = 'music-player-btn';
-    this.playerButton.setAttribute('aria-label', 'Toggle Music');
-    this.playerButton.setAttribute('title', 'Click to play/pause music');
-    
-    // Create vinyl disc
-    this.vinylElement = document.createElement('div');
-    this.vinylElement.className = 'vinyl-disc playing'; // Start dengan playing state
-    
-    // Assemble UI
-    this.playerButton.appendChild(this.vinylElement);
-    playerContainer.appendChild(this.playerButton);
-    
-    // Add to DOM
-    document.body.appendChild(playerContainer);
-    
-    console.log('🎨 Music player UI created');
-  },
-  
-  /**
-   * Setup event listeners
-   */
-  setupEventListeners() {
-    // Player button click
-    this.playerButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.toggle();
-    });
-    
-    // Keyboard accessibility
-    this.playerButton.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        this.toggle();
-      }
-    });
-    
-    // Page visibility change (pause saat tab tidak aktif)
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.isPlaying) {
-        this.pause(false); // Pause tanpa mengubah UI state
-      } else if (!document.hidden && this.isPlaying) {
-        this.play(false); // Resume tanpa mengubah UI state
-      }
-    });
-    
-    // Handle page unload
-    window.addEventListener('beforeunload', () => {
-      if (this.audio) {
-        this.audio.pause();
-      }
-    });
-  },
-  
-  /**
-   * Setup audio event listeners
-   */
-  setupAudioEvents() {
-    // Audio loaded
-    this.audio.addEventListener('loadedmetadata', () => {
-      console.log('🎵 Audio metadata loaded');
-    });
-    
-    this.audio.addEventListener('canplaythrough', () => {
-      console.log('🎵 Audio can play through');
-    });
-    
-    // Audio play/pause events
-    this.audio.addEventListener('play', () => {
-      console.log('▶️ Audio started playing');
-      this.updatePlayingState(true);
-    });
-    
-    this.audio.addEventListener('pause', () => {
-      console.log('⏸️ Audio paused');
-      this.updatePlayingState(false);
-    });
-    
-    // Audio ended (jika tidak loop)
-    this.audio.addEventListener('ended', () => {
-      console.log('🔚 Audio ended');
-      this.updatePlayingState(false);
-    });
-    
-    // Error handling
-    this.audio.addEventListener('error', (e) => {
-      console.error('❌ Audio error:', e);
-      this.handleAudioError(e);
-    });
-    
-    // Loading events
-    this.audio.addEventListener('loadstart', () => {
-      console.log('⏳ Audio loading started');
-    });
-    
-    this.audio.addEventListener('waiting', () => {
-      console.log('⏳ Audio buffering');
-    });
-  },
-  
-  /**
-   * Handle auto play dengan user interaction detection
-   */
-  async handleAutoPlay() {
-    if (!this.config.autoPlay) return;
-    
-    try {
-      // Coba auto play
-      await this.play(true);
-      console.log('🎵 Auto play successful');
-      
-    } catch (error) {
-      console.log('🎵 Auto play blocked, waiting for user interaction');
-      
-      // Setup one-time user interaction listener
-      const enableAudioOnInteraction = async () => {
-        try {
-          await this.play(true);
-          console.log('🎵 Audio enabled after user interaction');
-          
-          // Remove listeners setelah berhasil
-          document.removeEventListener('click', enableAudioOnInteraction);
-          document.removeEventListener('touchstart', enableAudioOnInteraction);
-          document.removeEventListener('keydown', enableAudioOnInteraction);
-          
-        } catch (err) {
-          console.error('❌ Failed to enable audio:', err);
-        }
-      };
-      
-      // Listen untuk user interaction
-      document.addEventListener('click', enableAudioOnInteraction, { once: true });
-      document.addEventListener('touchstart', enableAudioOnInteraction, { once: true });
-      document.addEventListener('keydown', enableAudioOnInteraction, { once: true });
-    }
-  },
-  
-  /**
-   * Play audio dengan fade in effect
-   */
-  async play(updateUI = true) {
-    if (!this.audio) return;
-    
-    try {
-      // Set volume ke 0 untuk fade in
-      this.audio.volume = 0;
-      
-      // Play audio
-      await this.audio.play();
-      
-      // Fade in effect
-      this.fadeIn();
-      
-      if (updateUI) {
-        this.isPlaying = true;
-        this.updatePlayingState(true);
-      }
-      
-    } catch (error) {
-      console.error('❌ Play failed:', error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Pause audio dengan fade out effect
-   */
-  pause(updateUI = true) {
-    if (!this.audio) return;
-    
-    // Fade out kemudian pause
-    this.fadeOut(() => {
-      this.audio.pause();
-      
-      if (updateUI) {
-        this.isPlaying = false;
-        this.updatePlayingState(false);
-      }
-    });
-  },
-  
-  /**
-   * Toggle play/pause
-   */
-  toggle() {
-    if (!this.isInitialized) {
-      console.warn('⚠️ Music player not initialized');
-      return;
-    }
-    
-    if (this.isPlaying) {
-      this.pause();
-    } else {
-      this.play();
-    }
-  },
-  
-  /**
-   * Update playing state dan UI
-   */
-  updatePlayingState(playing) {
-    this.isPlaying = playing;
-    
-    if (this.vinylElement) {
-      if (playing) {
-        this.vinylElement.classList.add('playing');
-        this.playerButton.setAttribute('aria-label', 'Pause Music');
-        this.playerButton.setAttribute('title', 'Click to pause music');
-      } else {
-        this.vinylElement.classList.remove('playing');
-        this.playerButton.setAttribute('aria-label', 'Play Music');
-        this.playerButton.setAttribute('title', 'Click to play music');
-      }
-    }
-  },
-  
-  /**
-   * Fade in effect
-   */
-  fadeIn() {
-    if (!this.audio) return;
-    
-    const targetVolume = this.config.volume;
-    const duration = this.config.fadeInDuration;
-    const steps = 60; // 60 steps untuk smooth fade
-    const stepDuration = duration / steps;
-    const volumeStep = targetVolume / steps;
-    
-    let currentStep = 0;
-    
-    const fadeInterval = setInterval(() => {
-      currentStep++;
-      const newVolume = Math.min(volumeStep * currentStep, targetVolume);
-      this.audio.volume = newVolume;
-      
-      if (currentStep >= steps || newVolume >= targetVolume) {
-        clearInterval(fadeInterval);
-        this.audio.volume = targetVolume;
-      }
-    }, stepDuration);
-  },
-  
-  /**
-   * Fade out effect
-   */
-  fadeOut(callback) {
-    if (!this.audio) return;
-    
-    const initialVolume = this.audio.volume;
-    const duration = this.config.fadeOutDuration;
-    const steps = 30; // 30 steps untuk fade out
-    const stepDuration = duration / steps;
-    const volumeStep = initialVolume / steps;
-    
-    let currentStep = 0;
-    
-    const fadeInterval = setInterval(() => {
-      currentStep++;
-      const newVolume = Math.max(initialVolume - (volumeStep * currentStep), 0);
-      this.audio.volume = newVolume;
-      
-      if (currentStep >= steps || newVolume <= 0) {
-        clearInterval(fadeInterval);
-        this.audio.volume = 0;
-        if (callback) callback();
-      }
-    }, stepDuration);
-  },
-  
-  /**
-   * Handle audio errors
-   */
-  handleAudioError(error) {
-    console.error('🚨 Audio error occurred:', error);
-    
-    // Update UI untuk error state
-    if (this.vinylElement) {
-      this.vinylElement.classList.remove('playing');
-      this.vinylElement.style.opacity = '0.5';
-    }
-    
-    if (this.playerButton) {
-      this.playerButton.setAttribute('title', 'Audio unavailable');
-      this.playerButton.disabled = true;
-    }
-    
-    this.isPlaying = false;
-  }
-};
 
 /**
  * COUNTDOWN MANAGER
@@ -1164,7 +796,6 @@ const CustomInitializer = {
       PerformanceOptimizer.init();
       
       // Initialize core features
-      MusicPlayerManager.init();
       SmoothScrollManager.init();
       // RSVPFormManager.init();
       CountdownManager.init();
@@ -1658,7 +1289,6 @@ const CustomInitializer = {
   // Export untuk debugging
   if (typeof window !== 'undefined') {
     window.CustomJS = {
-      MusicPlayerManager,
       SmoothScrollManager,
       RSVPFormManager,
       PerformanceOptimizer,
@@ -1711,12 +1341,183 @@ const CustomInitializer = {
   //   });
   // });
 
+  /**
+ * BACKSOUND MANAGER — FINAL + STABLE VERSION
+ * Autoplay setelah user pernah klik “Buka Undangan”
+ */
+const BacksoundManager = {
+  audio: null,
+  unlocked: false,
+  src: "assets/music/backsound.mp3",
+
+  init() {
+    this.audio = document.getElementById("backsound");
+    if (!this.audio) return;
+
+    this.audio.src = this.src;
+    this.audio.volume = 0.6;
+
+    // toggle circle rotation on audio state changes
+    const circle = document.getElementById("audioCircle");
+    const iconEl = circle ? circle.querySelector("i") : null;
+    this.audio.addEventListener("play", () => {
+      if (circle) {
+        circle.classList.add("playing");
+        circle.style.animationPlayState = "running";
+      }
+      if (iconEl) {
+        iconEl.classList.remove("icon-audio-off");
+        iconEl.classList.add("icon-audio");
+      }
+    });
+
+    this.audio.addEventListener("pause", () => {
+      if (circle) {
+        // pause animation without resetting rotation position
+        circle.classList.add("playing");
+        circle.style.animationPlayState = "paused";
+      }
+      if (iconEl) {
+        iconEl.classList.remove("icon-audio");
+        iconEl.classList.add("icon-audio-off");
+      }
+    });
+
+    this.audio.addEventListener("ended", () => {
+      if (circle) {
+        circle.classList.add("playing");
+        circle.style.animationPlayState = "paused";
+      }
+      if (iconEl) {
+        iconEl.classList.remove("icon-audio");
+        iconEl.classList.add("icon-audio-off");
+      }
+    });
+
+    // set initial icon and rotation state
+    if (iconEl) {
+      if (this.audio.paused) {
+        iconEl.classList.remove("icon-audio");
+        iconEl.classList.add("icon-audio-off");
+        if (circle) {
+          circle.classList.add("playing");
+          circle.style.animationPlayState = "paused";
+        }
+      } else {
+        if (circle) {
+          circle.classList.add("playing");
+          circle.style.animationPlayState = "running";
+        }
+        iconEl.classList.remove("icon-audio-off");
+        iconEl.classList.add("icon-audio");
+      }
+    }
+
+    this.unlocked = localStorage.getItem("userAudioUnlocked") === "1";
+
+    // if (this.unlocked) {
+    //   // coba autoplay setelah load
+    //   setTimeout(() => this.tryAuto(), 500);
+    // }
+  },
+
+  // saat user klik BUKA UNDANGAN
+  userGesture() {
+    if (!this.audio) return;
+
+    localStorage.setItem("userAudioUnlocked", "1");
+    this.unlocked = true;
+
+    this.audio.play().catch(err => {
+      console.warn("✅ gesture play gagal (akan retry):", err);
+      setTimeout(() => this.tryAuto(), 300);
+    });
+  },
+
+  // autoplay setelah reload
+  tryAuto() {
+    if (!this.unlocked) return;
+
+    this.audio.play()
+      .then(() => console.log("✅ autoplay sukses"))
+      .catch(err => {
+        console.log("⛔ autoplay gagal", err);
+        // console.warn("⛔ autoplay gagal, retry…", err);
+        // setTimeout(() => this.tryAuto(), 1000);
+      });
+  }
+};
+
+// ====================================================
+//  ANIMASI WELCOME DIPISAH → gesture tidak terganggu
+// ====================================================
+
+function runWelcomeExitAnimation() {
+  const $rightSide = $(".right-side");
+  const $welcomeSection = $(".welcome-section");
+  const $welcomeContent = $(".welcome-content");
+
+  // Fade konten welcome
+  $welcomeContent.css({
+    transition: "opacity 0.6s ease, transform 0.6s ease",
+    opacity: "0",
+    transform: "translate3d(0, 30px, 0)",
+  });
+
+  // Setelah fade selesai
+  setTimeout(() => {
+    $welcomeSection.css({
+      transition: "opacity 0.8s ease, transform 0.8s ease",
+      opacity: "0",
+      transform: "translate3d(0, -100%, 0)",
+    });
+
+    // Setelah welcome hilang dari layar
+    setTimeout(() => {
+      $welcomeSection.css({
+        "visibility": "hidden",
+        "display": "none",
+        "position": "absolute",
+        "pointer-events": "none"
+      });
+
+      $rightSide[0].style.overflowY = "auto";
+
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("position");
+      document.body.style.removeProperty("height");
+      document.body.style.removeProperty("touch-action");
+
+      // Force reflow
+      void $rightSide[0].clientHeight;
+
+      // Reset AOS
+      setTimeout(() => {
+        if (typeof AOS !== "undefined") AOS.refreshHard();
+      }, 10);
+    }, 800);
+
+  }, 600);
+};
+
 /**
  * Handler tombol "Buka Undangan"
  * animasi welcome → sembunyi → aktifin scroll → reset AOS
  */
 $("#startToExplore").on("click", function (e) {
   e.preventDefault();
+
+  // ✅ 1. User gesture PLAY dulu (sebelum animasi apapun jalan)
+  try {
+    BacksoundManager.userGesture();
+  } catch (err) {
+    console.warn("gesture play failed:", err);
+  }
+
+  // ✅ 2. Delay sedikit biar browser finalize gesture
+  setTimeout(() => {
+    runWelcomeExitAnimation();
+  }, 50);
 
   const $rightSide = $(".right-side");
   const $welcomeSection = $(".welcome-section");
@@ -2535,6 +2336,40 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
  * ================================
  */
 
+  document.addEventListener("DOMContentLoaded", () => {
+    BacksoundManager.init();
+
+    const circle = document.getElementById("audioCircle");
+    if (circle) {
+      circle.addEventListener("click", (e) => {
+        e.preventDefault();
+        const audio = BacksoundManager.audio;
+        const icon = circle.querySelector("i");
+        if (!audio) return;
+
+        if (audio.paused) {
+          // play immediately on user gesture, keep rotation position
+          BacksoundManager.userGesture();
+          circle.classList.add("playing");
+          circle.style.animationPlayState = "running";
+          if (icon) {
+            icon.classList.remove("icon-audio-off");
+            icon.classList.add("icon-audio");
+          }
+        } else {
+          // pause without resetting rotation
+          try { audio.pause(); } catch (err) { console.warn("Pause failed:", err); }
+          circle.classList.add("playing");
+          circle.style.animationPlayState = "paused";
+          if (icon) {
+            icon.classList.remove("icon-audio");
+            icon.classList.add("icon-audio-off");
+          }
+        }
+      });
+    }
+  });
+
   document.addEventListener("mainInitComplete", () => {
     setTimeout(() => WishManager.loadWishes(), 500);
     loadGuestInfo().then(() => {
@@ -2553,5 +2388,6 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
 
     });
   });
+  
 })();
 
