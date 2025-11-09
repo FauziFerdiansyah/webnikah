@@ -70,6 +70,11 @@
                   <i class="ri-user-add-line"></i> Tambah Undangan
                 </button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="invitation-tab" data-bs-toggle="tab" data-bs-target="#formInvitation" type="button" role="tab" aria-controls="formInvitation" aria-selected="false">
+                  <i class="ri-message-3-line"></i> Form Invitation
+                </button>
+              </li>
             </ul>
 
             <!-- Tab contents -->
@@ -105,7 +110,7 @@
                                         <th>No HP</th>
                                         <th>Undangan Dari</th>
                                         <th>Keterangan</th>
-                                        <th width="150" class="text-center">Aksi</th>
+                                        <th width="200" class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="guestTableBody">
@@ -196,6 +201,75 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Form Invitation -->
+              <div class="tab-pane fade" id="formInvitation" role="tabpanel" aria-labelledby="invitation-tab">
+                <h1 class="mt-4 mb-2 fs-6">Template Undangan WhatsApp</h1>
+                <p class="fw-light" style="font-size: 14px;">Edit template pesan undangan yang akan dikirim via WhatsApp.</p>
+                <div class="card card-border mb-lg-5 mb-3">
+                  <div class="card-body">
+                    <form id="invitationForm">
+                      <div class="mb-3">
+                        <label for="invitationTemplate" class="form-label">
+                          <i class="ri-message-3-line"></i> Template Pesan Undangan
+                        </label>
+                        <textarea id="invitationTemplate" class="form-control" rows="15"></textarea>
+                        <div class="form-text mt-2">
+                          <i class="ri-information-line"></i> Gunakan <code>[Nama Tamu]</code> untuk nama tamu dan <code>[Link Undangan]</code> untuk URL undangan.
+                        </div>
+                      </div>
+                      <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" id="resetTemplate">
+                          <i class="ri-refresh-line"></i> Reset ke Default
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                          <i class="ri-save-3-line"></i> Simpan Template
+                        </button>
+                      </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h2 class="fs-6 mb-3">Preview & Kirim Undangan</h2>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label for="previewGuestSelect" class="form-label">
+                            <i class="ri-user-line"></i> Pilih Tamu
+                          </label>
+                          <select id="previewGuestSelect" class="form-select">
+                            <option value="">-- Pilih Tamu --</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">
+                            <i class="ri-phone-line"></i> Nomor WhatsApp
+                          </label>
+                          <input type="text" id="previewPhone" class="form-control" readonly placeholder="Pilih tamu terlebih dahulu">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">
+                        <i class="ri-eye-line"></i> Preview Pesan
+                      </label>
+                      <div id="previewMessage" class="border rounded p-3 bg-light" style="white-space: pre-wrap; min-height: 200px; font-family: monospace; font-size: 14px;">
+                        Pilih tamu untuk melihat preview pesan...
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                      <button type="button" class="btn btn-success" id="sendWhatsApp" disabled>
+                        <i class="ri-whatsapp-line"></i> Kirim via WhatsApp
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

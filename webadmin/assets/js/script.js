@@ -7,7 +7,9 @@ import {
     orderBy,
     deleteDoc,
     doc,
-    updateDoc
+    updateDoc,
+    getDoc,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 $(document).ready(function () {
@@ -45,6 +47,26 @@ $(document).ready(function () {
         branding: false,
         height: 200,
         toolbar_mode: 'sliding',
+    });
+
+    // ==============================
+    // INVITATION TEMPLATE EDITOR
+    // ==============================
+    tinymce.init({
+        selector: '#invitationTemplate',
+        toolbar: 'bold italic underline | bullist numlist | alignleft aligncenter alignright',
+        menubar: false,
+        license_key: 'gpl',
+        statusbar: false,
+        branding: false,
+        height: 400,
+        toolbar_mode: 'sliding',
+        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; }',
+        setup: function(editor) {
+            editor.on('init', function() {
+                loadInvitationTemplate();
+            });
+        }
     });
 
 
@@ -213,10 +235,23 @@ $(document).ready(function () {
                     <td>${d.source || "-"}</td>
                     <td>${d.sourceName || "-"}</td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-success copyLink" data-id="${doc.id}" title="Copy Link">
+                        <button class="btn btn-sm btn-success sendWhatsAppDirect" 
+                                data-id="${doc.id}"
+                                data-name="${d.name || ''}"
+                                data-phone="${d.phone || ''}"
+                                title="Kirim WhatsApp">
+                            <i class="ri-whatsapp-line"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary copyLink" data-id="${doc.id}" title="Copy Link">
                             <i class="ri-link"></i>
                         </button>
-                        <button class="btn btn-sm btn-primary editGuest" data-id="${doc.id}">
+                        <button class="btn btn-sm btn-info editGuest" 
+                                data-id="${doc.id}"
+                                data-name="${d.name || ''}"
+                                data-maxguests="${d.maxGuests || 1}"
+                                data-phone="${d.phone || ''}"
+                                data-source="${d.source || ''}"
+                                data-sourcename="${d.sourceName || ''}">
                             <i class="ri-edit-line"></i>
                         </button>
                         <button class="btn btn-sm btn-danger deleteGuest" data-id="${doc.id}">
@@ -301,6 +336,23 @@ $(document).ready(function () {
                                         <tr>
                                             <td><strong>Jumlah RSVP:</strong></td>
                                             <td>${d.rsvpCount || 0} orang</td>
+                                        </tr>
+                                    </table>
+
+                                    <h6 class="mb-3 mt-3"><i class="ri-whatsapp-line"></i> Tracking WhatsApp</h6>
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td width="40%"><strong>Terakhir Dikirim:</strong></td>
+                                            <td>${formatDate(d.lastSent)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jumlah Kirim:</strong></td>
+                                            <td>
+                                                ${d.sendCount || 0}x
+                                                ${d.sendCount > 0 
+                                                    ? '<span class="badge bg-info ms-1">Sudah Dikirim</span>' 
+                                                    : '<span class="badge bg-secondary ms-1">Belum Dikirim</span>'}
+                                            </td>
                                         </tr>
                                     </table>
                                 </div>
@@ -475,15 +527,23 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".editGuest", function () {
-        const id = $(this).data("id");
-        const row = $(`tr[data-id="${id}"]`);
+        const $btn = $(this);
+        const id = $btn.data("id");
+        const name = $btn.data("name");
+        const maxGuests = $btn.data("maxguests");
+        const phone = $btn.data("phone");
+        const source = $btn.data("source");
+        const sourceName = $btn.data("sourcename");
 
+        // Populate form
         $('input[name="editGuestId"]').val(id);
-        $('input[name="editGuestName"]').val(row.find("td").eq(0).text());
-        $('input[name="editGuestCount"]').val(parseInt(row.find("td").eq(1).text()));
-        $('input[name="editGuestPhone"]').val(row.find("td").eq(2).text());
-        $('select[name="editGuestSource"]').val(row.find("td").eq(3).text());
-        $('input[name="editGuestSourceNote"]').val(row.find("td").eq(4).text());
+        $('input[name="editGuestName"]').val(name);
+        $('input[name="editGuestCount"]').val(maxGuests);
+        $('input[name="editGuestPhone"]').val(phone);
+        $('select[name="editGuestSource"]').val(source);
+        $('input[name="editGuestSourceNote"]').val(sourceName);
+
+        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, source, sourceName });
 
         const modal = new bootstrap.Modal(document.getElementById("editGuestModal"));
         modal.show();
@@ -535,6 +595,381 @@ $(document).ready(function () {
                 text: "Perubahan tidak dapat disimpan."
             });
         }
+    });
+
+
+    // ==============================
+    // ✅ INVITATION TEMPLATE MANAGER
+    // ==============================
+
+    const TEMPLATE_DOC_ID = "lw0mWlwUYZW2iJ2hPaw1";
+    const DEFAULT_TEMPLATE = `Kepada Yth. [Nama Tamu]
+
+Assalamu'alaikum Warahmatullahi Wabarakatuh
+
+Dengan memohon rahmat dan ridha Allah SWT, kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk menghadiri acara pernikahan kami:
+
+💍 Alfira & Fauzi
+📅 Minggu, 23 November 2025
+
+Detail acara dan konfirmasi kehadiran dapat diakses melalui tautan berikut:
+🔗 [Link Undangan]
+
+Merupakan kebahagiaan dan kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.
+
+Wassalamu'alaikum Warahmatullahi Wabarakatuh
+
+Kami yang berbahagia,
+Alfira & Fauzi`;
+
+    // Load template dari Firestore
+    async function loadInvitationTemplate() {
+        try {
+            const docRef = doc(window.db, "chatInvitation", TEMPLATE_DOC_ID);
+            const docSnap = await getDoc(docRef);
+
+            let template = DEFAULT_TEMPLATE;
+
+            if (docSnap.exists()) {
+                template = docSnap.data().template || DEFAULT_TEMPLATE;
+                console.log('✅ Template loaded from Firestore');
+            } else {
+                // Document belum ada, gunakan default template
+                console.log('⚠️ Template document belum ada, menggunakan default template');
+                console.log('💡 Silakan simpan template untuk membuat document di Firestore');
+                template = DEFAULT_TEMPLATE;
+            }
+
+            // Set ke TinyMCE
+            if (tinymce.get('invitationTemplate')) {
+                tinymce.get('invitationTemplate').setContent(template.replace(/\n/g, '<br>'));
+            }
+
+        } catch (err) {
+            console.error('❌ Error loading template:', err);
+            // Fallback ke default template
+            if (tinymce.get('invitationTemplate')) {
+                tinymce.get('invitationTemplate').setContent(DEFAULT_TEMPLATE.replace(/\n/g, '<br>'));
+            }
+        }
+    }
+
+    // Save template ke Firestore
+    $("#invitationForm").on("submit", async function(e) {
+        e.preventDefault();
+
+        const editor = tinymce.get('invitationTemplate');
+        if (!editor) return;
+
+        // Get content dan convert <br> ke \n
+        let template = editor.getContent({ format: 'text' });
+
+        try {
+            const docRef = doc(window.db, "chatInvitation", TEMPLATE_DOC_ID);
+            await setDoc(docRef, {
+                template: template,
+                adminKey: ADMIN_KEY,  // ✅ Tambahkan adminKey untuk lolos rules
+                updatedAt: serverTimestamp()
+            });
+
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil",
+                text: "Template berhasil disimpan!",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            console.log('✅ Template saved');
+        } catch (err) {
+            console.error('❌ Error saving template:', err);
+            Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: "Gagal menyimpan template."
+            });
+        }
+    });
+
+    // Reset template ke default
+    $("#resetTemplate").on("click", function() {
+        Swal.fire({
+            title: "Reset Template?",
+            text: "Template akan dikembalikan ke default.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Reset",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const editor = tinymce.get('invitationTemplate');
+                if (editor) {
+                    editor.setContent(DEFAULT_TEMPLATE.replace(/\n/g, '<br>'));
+                }
+            }
+        });
+    });
+
+    // Load guest list untuk preview
+    async function loadGuestListForInvitation() {
+        try {
+            const q = query(collection(window.db, "guest"), orderBy("name", "asc"));
+            const snap = await getDocs(q);
+
+            const select = $("#previewGuestSelect");
+            select.empty();
+            select.append('<option value="">-- Pilih Tamu --</option>');
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                select.append(`<option value="${doc.id}" data-name="${data.name}" data-phone="${data.phone}">${data.name}</option>`);
+            });
+
+            console.log('✅ Guest list loaded for invitation');
+        } catch (err) {
+            console.error('❌ Error loading guest list:', err);
+        }
+    }
+
+    // Preview message saat pilih tamu
+    $("#previewGuestSelect").on("change", async function() {
+        const selectedOption = $(this).find("option:selected");
+        const guestId = $(this).val();
+        const guestName = selectedOption.data("name");
+        const guestPhone = selectedOption.data("phone");
+
+        if (!guestId) {
+            $("#previewPhone").val("");
+            $("#previewMessage").text("Pilih tamu untuk melihat preview pesan...");
+            $("#sendWhatsApp").prop("disabled", true);
+            return;
+        }
+
+        $("#previewPhone").val(guestPhone);
+
+        // Load template
+        try {
+            const docRef = doc(window.db, "chatInvitation", TEMPLATE_DOC_ID);
+            const docSnap = await getDoc(docRef);
+
+            let template = DEFAULT_TEMPLATE;
+            if (docSnap.exists()) {
+                template = docSnap.data().template || DEFAULT_TEMPLATE;
+            }
+
+            // Replace placeholders
+            const guestLink = `${url_domain}?g=${guestId}`;
+            const message = template
+                .replace(/\[Nama Tamu\]/g, guestName)
+                .replace(/\[Link Undangan\]/g, guestLink);
+
+            $("#previewMessage").text(message);
+            $("#sendWhatsApp").prop("disabled", false);
+
+        } catch (err) {
+            console.error('❌ Error loading template for preview:', err);
+        }
+    });
+
+    // Send via WhatsApp
+    $("#sendWhatsApp").on("click", function() {
+        const phone = $("#previewPhone").val();
+        const message = $("#previewMessage").text();
+
+        if (!phone || !message) {
+            Swal.fire({
+                icon: "warning",
+                title: "Data Tidak Lengkap",
+                text: "Pilih tamu terlebih dahulu."
+            });
+            return;
+        }
+
+        // Format phone number (remove leading 0, add 62)
+        let formattedPhone = phone.replace(/\D/g, '');
+        if (formattedPhone.startsWith('0')) {
+            formattedPhone = '62' + formattedPhone.substring(1);
+        } else if (!formattedPhone.startsWith('62')) {
+            formattedPhone = '62' + formattedPhone;
+        }
+
+        // Encode message untuk URL
+        const encodedMessage = encodeURIComponent(message);
+
+        // Open WhatsApp Web
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
+        window.open(whatsappUrl, '_blank');
+
+        console.log('✅ Opening WhatsApp for:', formattedPhone);
+    });
+
+    // Load guest list saat tab dibuka
+    $('button[data-bs-target="#formInvitation"]').on("click", function() {
+        loadGuestListForInvitation();
+    });
+
+
+    // ==============================
+    // ✅ SEND WHATSAPP DIRECT FROM LIST
+    // ==============================
+
+    // Helper function untuk format phone number
+    function formatPhoneNumber(phone) {
+        let formatted = phone.replace(/\D/g, '');
+        if (formatted.startsWith('0')) {
+            formatted = '62' + formatted.substring(1);
+        } else if (!formatted.startsWith('62')) {
+            formatted = '62' + formatted;
+        }
+        return formatted;
+    }
+
+    // Helper function untuk update send tracking
+    async function updateSendTracking(guestId) {
+        try {
+            const docRef = doc(window.db, "guest", guestId);
+            const docSnap = await getDoc(docRef);
+            
+            if (!docSnap.exists()) {
+                console.error('❌ Guest not found:', guestId);
+                return false;
+            }
+
+            const currentData = docSnap.data();
+            const currentSendCount = currentData.sendCount || 0;
+
+            await updateDoc(docRef, {
+                lastSent: serverTimestamp(),
+                sendCount: currentSendCount + 1,
+                updatedAt: serverTimestamp(),
+                adminKey: ADMIN_KEY
+            });
+
+            console.log('✅ Send tracking updated:', { guestId, sendCount: currentSendCount + 1 });
+            return true;
+
+        } catch (err) {
+            console.error('❌ Error updating send tracking:', err);
+            return false;
+        }
+    }
+
+    // Handler untuk tombol WhatsApp di list
+    $(document).on("click", ".sendWhatsAppDirect", async function() {
+        const $btn = $(this);
+        const guestId = $btn.data("id");
+        const guestName = $btn.data("name");
+        const guestPhone = $btn.data("phone");
+
+        if (!guestPhone) {
+            Swal.fire({
+                icon: "warning",
+                title: "Nomor Tidak Ada",
+                text: "Tamu ini belum memiliki nomor WhatsApp."
+            });
+            return;
+        }
+
+        // Disable button sementara
+        $btn.prop("disabled", true);
+
+        try {
+            // Load template
+            const docRef = doc(window.db, "chatInvitation", TEMPLATE_DOC_ID);
+            const docSnap = await getDoc(docRef);
+
+            let template = DEFAULT_TEMPLATE;
+            if (docSnap.exists()) {
+                template = docSnap.data().template || DEFAULT_TEMPLATE;
+            }
+
+            // Replace placeholders
+            const guestLink = `${url_domain}?g=${guestId}`;
+            const message = template
+                .replace(/\[Nama Tamu\]/g, guestName)
+                .replace(/\[Link Undangan\]/g, guestLink);
+
+            // Format phone number
+            const formattedPhone = formatPhoneNumber(guestPhone);
+
+            // Encode message
+            const encodedMessage = encodeURIComponent(message);
+
+            // Update tracking
+            await updateSendTracking(guestId);
+
+            // Open WhatsApp
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+
+            // Show success message
+            Swal.fire({
+                icon: "success",
+                title: "WhatsApp Dibuka",
+                text: `Pesan untuk ${guestName} siap dikirim!`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            console.log('✅ WhatsApp opened for:', guestName, formattedPhone);
+
+            // Reload list untuk update tracking info
+            setTimeout(() => {
+                loadGuestList();
+            }, 1000);
+
+        } catch (err) {
+            console.error('❌ Error sending WhatsApp:', err);
+            Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: "Gagal membuka WhatsApp. Coba lagi."
+            });
+        } finally {
+            // Re-enable button
+            $btn.prop("disabled", false);
+        }
+    });
+
+    // Update sendWhatsApp dari preview untuk juga update tracking
+    $("#sendWhatsApp").off("click").on("click", async function() {
+        const phone = $("#previewPhone").val();
+        const message = $("#previewMessage").text();
+        const guestId = $("#previewGuestSelect").val();
+
+        if (!phone || !message || !guestId) {
+            Swal.fire({
+                icon: "warning",
+                title: "Data Tidak Lengkap",
+                text: "Pilih tamu terlebih dahulu."
+            });
+            return;
+        }
+
+        // Format phone number
+        const formattedPhone = formatPhoneNumber(phone);
+
+        // Encode message
+        const encodedMessage = encodeURIComponent(message);
+
+        // Update tracking
+        await updateSendTracking(guestId);
+
+        // Open WhatsApp
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
+        window.open(whatsappUrl, '_blank');
+
+        Swal.fire({
+            icon: "success",
+            title: "WhatsApp Dibuka",
+            text: "Pesan siap dikirim!",
+            timer: 2000,
+            showConfirmButton: false
+        });
+
+        console.log('✅ WhatsApp opened for:', formattedPhone);
     });
 
 
