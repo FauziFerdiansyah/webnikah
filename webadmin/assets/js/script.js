@@ -13,6 +13,11 @@ import {
 $(document).ready(function () {
 
     // ==============================
+    // URL DOMAIN CONFIG
+    // ==============================
+    let url_domain = "http://127.0.0.1:5500/";
+
+    // ==============================
     // MENU TOGGLE
     // ==============================
     $("#menu-toggle").click(function(e) {
@@ -52,7 +57,7 @@ $(document).ready(function () {
     let allGuests = [];      // Semua data dari Firestore
     let filteredGuests = []; // Data setelah filter search
     let currentPage = 1;
-    const perPage = 2;
+    const perPage = 10;
 
     $("#qrForm").on("submit", async function (e) {
         e.preventDefault();
@@ -164,32 +169,158 @@ $(document).ready(function () {
         pag.append(li(currentPage === totalPages, false, totalPages, "&raquo;"));
     }
 
+    // Helper: Format timestamp
+    function formatDate(timestamp) {
+        if (!timestamp) return "-";
+        try {
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch {
+            return "-";
+        }
+    }
+
     // Render tabel
     function renderGuestTable(list) {
         const tbody = $("#guestTableBody");
         tbody.empty();
 
         if (!list.length) {
-            tbody.html(`<tr><td colspan="6" class="text-center text-muted">Tidak ada data.</td></tr>`);
+            tbody.html(`<tr><td colspan="7" class="text-center text-muted">Tidak ada data.</td></tr>`);
             return;
         }
 
         list.forEach(doc => {
             const d = doc.data;
+            
+            // Main row
             tbody.append(`
-                <tr data-id="${doc.id}">
+                <tr class="guest-row" data-id="${doc.id}">
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-secondary toggleDetail" data-id="${doc.id}" title="Lihat Detail">
+                            <i class="ri-arrow-down-s-line"></i>
+                        </button>
+                    </td>
                     <td>${d.name || "-"}</td>
                     <td>${d.maxGuests || 0} Tamu</td>
                     <td>${d.phone || "-"}</td>
                     <td>${d.source || "-"}</td>
                     <td>${d.sourceName || "-"}</td>
                     <td class="text-center">
+                        <button class="btn btn-sm btn-success copyLink" data-id="${doc.id}" title="Copy Link">
+                            <i class="ri-link"></i>
+                        </button>
                         <button class="btn btn-sm btn-primary editGuest" data-id="${doc.id}">
                             <i class="ri-edit-line"></i>
                         </button>
                         <button class="btn btn-sm btn-danger deleteGuest" data-id="${doc.id}">
                             <i class="ri-delete-bin-line"></i>
                         </button>
+                    </td>
+                </tr>
+            `);
+
+            // Detail row (hidden by default)
+            tbody.append(`
+                <tr class="detail-row" id="detail-${doc.id}" style="display: none;">
+                    <td colspan="7" class="p-0">
+                        <div class="detail-content bg-light p-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3"><i class="ri-information-line"></i> Informasi Dasar</h6>
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td width="40%"><strong>ID Guest:</strong></td>
+                                            <td><code>${doc.id}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Nama:</strong></td>
+                                            <td>${d.name || "-"}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>No. HP:</strong></td>
+                                            <td>${d.phone || "-"}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Max Tamu:</strong></td>
+                                            <td>${d.maxGuests || 0} orang</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Sumber:</strong></td>
+                                            <td>${d.source || "-"}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Nama Sumber:</strong></td>
+                                            <td>${d.sourceName || "-"}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-3"><i class="ri-calendar-check-line"></i> Status & Aktivitas</h6>
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td width="40%"><strong>Status Buka:</strong></td>
+                                            <td>
+                                                ${d.opened 
+                                                    ? '<span class="badge bg-success">Sudah Dibuka</span>' 
+                                                    : '<span class="badge bg-secondary">Belum Dibuka</span>'}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jumlah Buka:</strong></td>
+                                            <td>${d.openCount || 0}x</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Pertama Dibuka:</strong></td>
+                                            <td>${formatDate(d.openedAt)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Terakhir Dibuka:</strong></td>
+                                            <td>${formatDate(d.lastOpenedAt)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Device Type:</strong></td>
+                                            <td>${d.deviceType || "-"}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Status RSVP:</strong></td>
+                                            <td>
+                                                ${d.rsvpStatus === "yes" 
+                                                    ? '<span class="badge bg-success">Hadir</span>' 
+                                                    : d.rsvpStatus === "no" 
+                                                    ? '<span class="badge bg-danger">Tidak Hadir</span>' 
+                                                    : '<span class="badge bg-secondary">Belum Konfirmasi</span>'}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jumlah RSVP:</strong></td>
+                                            <td>${d.rsvpCount || 0} orang</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <h6 class="mb-2"><i class="ri-time-line"></i> Timestamp</h6>
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td width="20%"><strong>Dibuat:</strong></td>
+                                            <td>${formatDate(d.createdAt)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Diupdate:</strong></td>
+                                            <td>${formatDate(d.updatedAt)}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
             `);
@@ -260,6 +391,50 @@ $(document).ready(function () {
     // ✅ Load pertama kali saat page open
     loadGuestList();
 
+
+    // ==============================
+    // ✅ TOGGLE DETAIL ROW
+    // ==============================
+    $(document).on("click", ".toggleDetail", function () {
+        const id = $(this).data("id");
+        const detailRow = $(`#detail-${id}`);
+        const icon = $(this).find("i");
+
+        if (detailRow.is(":visible")) {
+            detailRow.slideUp(200);
+            icon.removeClass("ri-arrow-up-s-line").addClass("ri-arrow-down-s-line");
+        } else {
+            detailRow.slideDown(200);
+            icon.removeClass("ri-arrow-down-s-line").addClass("ri-arrow-up-s-line");
+        }
+    });
+
+
+    // ==============================
+    // ✅ COPY LINK GUEST
+    // ==============================
+    $(document).on("click", ".copyLink", function () {
+        const id = $(this).data("id");
+        const guestLink = `${url_domain}?g=${id}`;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(guestLink).then(() => {
+            Swal.fire({
+                icon: "success",
+                title: "Link Tersalin!",
+                text: guestLink,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: "Tidak dapat menyalin link."
+            });
+        });
+    });
 
     $(document).on("click", ".deleteGuest", async function () {
         const id = $(this).data("id");

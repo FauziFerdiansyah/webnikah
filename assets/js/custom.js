@@ -1504,8 +1504,26 @@ function runWelcomeExitAnimation() {
  * Handler tombol "Buka Undangan"
  * animasi welcome → sembunyi → aktifin scroll → reset AOS
  */
+
+// ✅ AUTO-CLICK TIMEOUT 8 DETIK
+let autoClickTriggered = false;
+const autoClickTimeout = setTimeout(() => {
+  if (!autoClickTriggered) {
+    console.log("⏰ Auto-click triggered after 6 seconds");
+    $("#startToExplore").trigger("click");
+    autoClickTriggered = true;
+  }
+}, 8000);
+
 $("#startToExplore").on("click", function (e) {
   e.preventDefault();
+
+  // Clear auto-click timeout jika user sudah klik manual
+  if (!autoClickTriggered) {
+    clearTimeout(autoClickTimeout);
+    autoClickTriggered = true;
+    console.log("✅ Manual click detected, auto-click cancelled");
+  }
 
   // ✅ 1. User gesture PLAY dulu (sebelum animasi apapun jalan)
   try {
