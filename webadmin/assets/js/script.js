@@ -82,6 +82,90 @@ $(document).ready(function () {
     const perPage = 10;
 
     // ==============================
+    // ✅ NORMALIZE PHONE NUMBER
+    // ==============================
+    function normalizePhoneNumber(phone) {
+        if (!phone) return "";
+
+        // 1. Hapus semua karakter non-digit
+        let normalized = phone.replace(/\D/g, '');
+
+        // 2. Jika diawali 62, ubah jadi 0
+        if (normalized.startsWith('62')) {
+            normalized = '0' + normalized.substring(2);
+        }
+
+        // 3. Jika tidak diawali 0, tambahkan 0 di depan
+        if (!normalized.startsWith('0')) {
+            normalized = '0' + normalized;
+        }
+
+        console.log(`📱 Phone normalized: "${phone}" → "${normalized}"`);
+        return normalized;
+    }
+
+    // ==============================
+    // ✅ PHONE NUMBER PREVIEW (REAL-TIME)
+    // ==============================
+    let phonePreviewTimeout;
+    
+    $('[name="guestPhone"]').on("input", function() {
+        const $input = $(this);
+        const rawValue = $input.val();
+        
+        // Clear previous timeout
+        clearTimeout(phonePreviewTimeout);
+        
+        // Show preview after user stops typing (500ms)
+        phonePreviewTimeout = setTimeout(() => {
+            if (rawValue.trim()) {
+                const normalized = normalizePhoneNumber(rawValue);
+                
+                // Show preview di bawah input (jika berbeda)
+                if (rawValue !== normalized) {
+                    let $preview = $input.next('.phone-preview');
+                    if (!$preview.length) {
+                        $input.after('<small class="phone-preview text-muted d-block mt-1"></small>');
+                        $preview = $input.next('.phone-preview');
+                    }
+                    $preview.html(`<i class="ri-information-line"></i> Akan disimpan sebagai: <strong>${normalized}</strong>`);
+                } else {
+                    $input.next('.phone-preview').remove();
+                }
+            } else {
+                $input.next('.phone-preview').remove();
+            }
+        }, 500);
+    });
+
+    // Same untuk edit modal
+    $('[name="editGuestPhone"]').on("input", function() {
+        const $input = $(this);
+        const rawValue = $input.val();
+        
+        clearTimeout(phonePreviewTimeout);
+        
+        phonePreviewTimeout = setTimeout(() => {
+            if (rawValue.trim()) {
+                const normalized = normalizePhoneNumber(rawValue);
+                
+                if (rawValue !== normalized) {
+                    let $preview = $input.next('.phone-preview');
+                    if (!$preview.length) {
+                        $input.after('<small class="phone-preview text-muted d-block mt-1"></small>');
+                        $preview = $input.next('.phone-preview');
+                    }
+                    $preview.html(`<i class="ri-information-line"></i> Akan disimpan sebagai: <strong>${normalized}</strong>`);
+                } else {
+                    $input.next('.phone-preview').remove();
+                }
+            } else {
+                $input.next('.phone-preview').remove();
+            }
+        }, 500);
+    });
+
+    // ==============================
     // ✅ AUTO-CHANGE maxGuests SAAT ADA "&"
     // ==============================
     $('[name="guestName"]').on("input", function() {
@@ -115,7 +199,7 @@ $(document).ready(function () {
         // ✅ Ambil lewat name bukan placeholder/id
         const guestName  = $('[name="guestName"]').val().trim();
         const maxGuests  = Number($('[name="guestCount"]').val());
-        const phone      = $('[name="guestPhone"]').val().trim();
+        const phoneRaw   = $('[name="guestPhone"]').val().trim();
 
         const source     = $('[name="guestSource"]').val();
         const sourceNote = $('[name="guestSourceNote"]').val().trim();
@@ -124,7 +208,10 @@ $(document).ready(function () {
         // ✅ Validasi
         if (!guestName)  return alert("Nama tamu wajib diisi");
         if (!maxGuests || maxGuests < 1) return alert("Jumlah minimal 1");
-        if (!phone)      return alert("Nomor HP wajib diisi");
+        if (!phoneRaw)   return alert("Nomor HP wajib diisi");
+
+        // ✅ Normalize phone number
+        const phone = normalizePhoneNumber(phoneRaw);
 
         const payload = {
             name: guestName,
@@ -605,10 +692,12 @@ $(document).ready(function () {
     $("#saveEditGuest").on("click", async function () {
         const id = $('input[name="editGuestId"]').val();
 
+        const phoneRaw = $('input[name="editGuestPhone"]').val().trim();
+
         const payload = {
             name: $('input[name="editGuestName"]').val().trim(),
             maxGuests: Number($('input[name="editGuestCount"]').val()),
-            phone: $('input[name="editGuestPhone"]').val().trim(),
+            phone: normalizePhoneNumber(phoneRaw),  // ✅ Normalize phone
             source: $('select[name="editGuestSource"]').val(),
             sourceName: $('input[name="editGuestSourceNote"]').val().trim(),
             isVip: $('input[name="editGuestVip"]:checked').val() === "true",
@@ -616,7 +705,7 @@ $(document).ready(function () {
             adminKey: ADMIN_KEY
         };
 
-        if (!payload.name || !payload.maxGuests || !payload.phone) {
+        if (!payload.name || !payload.maxGuests || !phoneRaw) {
             Swal.fire({
                 icon: "warning",
                 title: "Data belum lengkap",
