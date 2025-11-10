@@ -81,6 +81,34 @@ $(document).ready(function () {
     let currentPage = 1;
     const perPage = 10;
 
+    // ==============================
+    // ✅ AUTO-CHANGE maxGuests SAAT ADA "&"
+    // ==============================
+    $('[name="guestName"]').on("input", function() {
+        const name = $(this).val();
+        const maxGuestsInput = $('[name="guestCount"]');
+        const currentMax = Number(maxGuestsInput.val());
+
+        // Jika ada "&" dan maxGuests masih 1, ubah jadi 2
+        if (name.includes("&") && currentMax === 1) {
+            maxGuestsInput.val(2);
+            console.log('✅ Auto-changed maxGuests to 2 (detected "&")');
+        }
+    });
+
+    // Same untuk edit modal
+    $('[name="editGuestName"]').on("input", function() {
+        const name = $(this).val();
+        const maxGuestsInput = $('[name="editGuestCount"]');
+        const currentMax = Number(maxGuestsInput.val());
+
+        // Jika ada "&" dan maxGuests masih 1, ubah jadi 2
+        if (name.includes("&") && currentMax === 1) {
+            maxGuestsInput.val(2);
+            console.log('✅ Auto-changed maxGuests to 2 (detected "&")');
+        }
+    });
+
     $("#qrForm").on("submit", async function (e) {
         e.preventDefault();
 
@@ -91,6 +119,7 @@ $(document).ready(function () {
 
         const source     = $('[name="guestSource"]').val();
         const sourceNote = $('[name="guestSourceNote"]').val().trim();
+        const isVip      = $('[name="guestVip"]:checked').val() === "true";
 
         // ✅ Validasi
         if (!guestName)  return alert("Nama tamu wajib diisi");
@@ -104,6 +133,7 @@ $(document).ready(function () {
 
             source: source || "",
             sourceName: sourceNote || "",
+            isVip: isVip,
 
             opened: false,
             openCount: 0,
@@ -133,6 +163,7 @@ $(document).ready(function () {
             $('[name="guestPhone"]').val("");
             $('[name="guestSource"]').val("");
             $('[name="guestSourceNote"]').val("");
+            $('[name="guestVip"][value="false"]').prop("checked", true);
 
         } catch (err) {
             console.error(err);
@@ -214,7 +245,7 @@ $(document).ready(function () {
         tbody.empty();
 
         if (!list.length) {
-            tbody.html(`<tr><td colspan="7" class="text-center text-muted">Tidak ada data.</td></tr>`);
+            tbody.html(`<tr><td colspan="8" class="text-center text-muted">Tidak ada data.</td></tr>`);
             return;
         }
 
@@ -234,6 +265,11 @@ $(document).ready(function () {
                     <td>${d.phone || "-"}</td>
                     <td>${d.source || "-"}</td>
                     <td>${d.sourceName || "-"}</td>
+                    <td>
+                        ${d.opened 
+                            ? '<span class="badge bg-success"><i class="ri-check-line"></i> Sudah</span>' 
+                            : '<span class="badge bg-secondary"><i class="ri-close-line"></i> Belum</span>'}
+                    </td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-success sendWhatsAppDirect" 
                                 data-id="${doc.id}"
@@ -251,7 +287,8 @@ $(document).ready(function () {
                                 data-maxguests="${d.maxGuests || 1}"
                                 data-phone="${d.phone || ''}"
                                 data-source="${d.source || ''}"
-                                data-sourcename="${d.sourceName || ''}">
+                                data-sourcename="${d.sourceName || ''}"
+                                data-isvip="${d.isVip || false}">
                             <i class="ri-edit-line"></i>
                         </button>
                         <button class="btn btn-sm btn-danger deleteGuest" data-id="${doc.id}">
@@ -264,7 +301,7 @@ $(document).ready(function () {
             // Detail row (hidden by default)
             tbody.append(`
                 <tr class="detail-row" id="detail-${doc.id}" style="display: none;">
-                    <td colspan="7" class="p-0">
+                    <td colspan="8" class="p-0">
                         <div class="detail-content bg-light p-3">
                             <div class="row">
                                 <div class="col-md-6">
@@ -293,6 +330,14 @@ $(document).ready(function () {
                                         <tr>
                                             <td><strong>Nama Sumber:</strong></td>
                                             <td>${d.sourceName || "-"}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Status VIP:</strong></td>
+                                            <td>
+                                                ${d.isVip 
+                                                    ? '<span class="badge bg-warning text-dark"><i class="ri-vip-crown-fill"></i> VIP</span>' 
+                                                    : '<span class="badge bg-secondary">Regular</span>'}
+                                            </td>
                                         </tr>
                                     </table>
                                 </div>
@@ -534,6 +579,7 @@ $(document).ready(function () {
         const phone = $btn.data("phone");
         const source = $btn.data("source");
         const sourceName = $btn.data("sourcename");
+        const isVip = $btn.data("isvip");
 
         // Populate form
         $('input[name="editGuestId"]').val(id);
@@ -542,8 +588,15 @@ $(document).ready(function () {
         $('input[name="editGuestPhone"]').val(phone);
         $('select[name="editGuestSource"]').val(source);
         $('input[name="editGuestSourceNote"]').val(sourceName);
+        
+        // Set VIP radio button
+        if (isVip === true || isVip === "true") {
+            $('input[name="editGuestVip"][value="true"]').prop("checked", true);
+        } else {
+            $('input[name="editGuestVip"][value="false"]').prop("checked", true);
+        }
 
-        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, source, sourceName });
+        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, source, sourceName, isVip });
 
         const modal = new bootstrap.Modal(document.getElementById("editGuestModal"));
         modal.show();
@@ -558,6 +611,7 @@ $(document).ready(function () {
             phone: $('input[name="editGuestPhone"]').val().trim(),
             source: $('select[name="editGuestSource"]').val(),
             sourceName: $('input[name="editGuestSourceNote"]').val().trim(),
+            isVip: $('input[name="editGuestVip"]:checked').val() === "true",
             updatedAt: serverTimestamp(),
             adminKey: ADMIN_KEY
         };
