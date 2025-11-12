@@ -203,7 +203,11 @@ $(document).ready(function () {
 
         const source     = $('[name="guestSource"]').val();
         const sourceNote = $('[name="guestSourceNote"]').val().trim();
-        const isVip      = $('[name="guestVip"]:checked').val() === "true";
+        
+        // ✅ Get VIP status dari 3 checkbox terpisah
+        const isTableVip     = $('[name="guestTableVip"]').is(':checked');
+        const isSouvenirVip  = $('[name="guestSouvenirVip"]').is(':checked');
+        const isUndanganVip  = $('[name="guestUndanganVip"]').is(':checked');
 
         // ✅ Validasi
         if (!guestName)  return alert("Nama tamu wajib diisi");
@@ -220,7 +224,11 @@ $(document).ready(function () {
 
             source: source || "",
             sourceName: sourceNote || "",
-            isVip: isVip,
+            
+            // ✅ 3 field VIP terpisah (boolean)
+            isTableVip: isTableVip,
+            isSouvenirVip: isSouvenirVip,
+            isUndanganVip: isUndanganVip,
 
             opened: false,
             openCount: 0,
@@ -250,7 +258,11 @@ $(document).ready(function () {
             $('[name="guestPhone"]').val("");
             $('[name="guestSource"]').val("");
             $('[name="guestSourceNote"]').val("");
-            $('[name="guestVip"][value="false"]').prop("checked", true);
+            
+            // ✅ Reset 3 VIP checkboxes
+            $('[name="guestTableVip"]').prop("checked", false);
+            $('[name="guestSouvenirVip"]').prop("checked", false);
+            $('[name="guestUndanganVip"]').prop("checked", false);
 
         } catch (err) {
             console.error(err);
@@ -375,7 +387,9 @@ $(document).ready(function () {
                                 data-phone="${d.phone || ''}"
                                 data-source="${d.source || ''}"
                                 data-sourcename="${d.sourceName || ''}"
-                                data-isvip="${d.isVip || false}">
+                                data-istablevip="${d.isTableVip || false}"
+                                data-issouvenivip="${d.isSouvenirVip || false}"
+                                data-isundanganvip="${d.isUndanganVip || false}">
                             <i class="ri-edit-line"></i>
                         </button>
                         <button class="btn btn-sm btn-danger deleteGuest" data-id="${doc.id}">
@@ -421,9 +435,17 @@ $(document).ready(function () {
                                         <tr>
                                             <td><strong>Status VIP:</strong></td>
                                             <td>
-                                                ${d.isVip 
-                                                    ? '<span class="badge bg-warning text-dark"><i class="ri-vip-crown-fill"></i> VIP</span>' 
-                                                    : '<span class="badge bg-secondary">Regular</span>'}
+                                                <div class="d-flex flex-column gap-1">
+                                                    ${d.isTableVip 
+                                                        ? '<span class="badge bg-warning text-dark"><i class="ri-restaurant-line"></i> VIP Table</span>' 
+                                                        : '<span class="badge bg-secondary"><i class="ri-restaurant-line"></i> Regular Table</span>'}
+                                                    ${d.isSouvenirVip 
+                                                        ? '<span class="badge bg-warning text-dark"><i class="ri-gift-line"></i> VIP Souvenir</span>' 
+                                                        : '<span class="badge bg-secondary"><i class="ri-gift-line"></i> Regular Souvenir</span>'}
+                                                    ${d.isUndanganVip 
+                                                        ? '<span class="badge bg-warning text-dark"><i class="ri-mail-line"></i> VIP Undangan</span>' 
+                                                        : '<span class="badge bg-secondary"><i class="ri-mail-line"></i> Regular Undangan</span>'}
+                                                </div>
                                             </td>
                                         </tr>
                                     </table>
@@ -666,7 +688,11 @@ $(document).ready(function () {
         const phone = $btn.data("phone");
         const source = $btn.data("source");
         const sourceName = $btn.data("sourcename");
-        const isVip = $btn.data("isvip");
+        
+        // ✅ Get 3 VIP status terpisah
+        const isTableVip = $btn.data("istablevip");
+        const isSouvenirVip = $btn.data("issouvenivip");
+        const isUndanganVip = $btn.data("isundanganvip");
 
         // Populate form
         $('input[name="editGuestId"]').val(id);
@@ -676,14 +702,12 @@ $(document).ready(function () {
         $('select[name="editGuestSource"]').val(source);
         $('input[name="editGuestSourceNote"]').val(sourceName);
         
-        // Set VIP radio button
-        if (isVip === true || isVip === "true") {
-            $('input[name="editGuestVip"][value="true"]').prop("checked", true);
-        } else {
-            $('input[name="editGuestVip"][value="false"]').prop("checked", true);
-        }
+        // ✅ Set 3 VIP checkboxes
+        $('input[name="editGuestTableVip"]').prop("checked", isTableVip === true || isTableVip === "true");
+        $('input[name="editGuestSouvenirVip"]').prop("checked", isSouvenirVip === true || isSouvenirVip === "true");
+        $('input[name="editGuestUndanganVip"]').prop("checked", isUndanganVip === true || isUndanganVip === "true");
 
-        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, source, sourceName, isVip });
+        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, source, sourceName, isTableVip, isSouvenirVip, isUndanganVip });
 
         const modal = new bootstrap.Modal(document.getElementById("editGuestModal"));
         modal.show();
@@ -700,7 +724,12 @@ $(document).ready(function () {
             phone: normalizePhoneNumber(phoneRaw),  // ✅ Normalize phone
             source: $('select[name="editGuestSource"]').val(),
             sourceName: $('input[name="editGuestSourceNote"]').val().trim(),
-            isVip: $('input[name="editGuestVip"]:checked').val() === "true",
+            
+            // ✅ 3 field VIP terpisah (boolean)
+            isTableVip: $('input[name="editGuestTableVip"]').is(':checked'),
+            isSouvenirVip: $('input[name="editGuestSouvenirVip"]').is(':checked'),
+            isUndanganVip: $('input[name="editGuestUndanganVip"]').is(':checked'),
+            
             updatedAt: serverTimestamp(),
             adminKey: ADMIN_KEY
         };

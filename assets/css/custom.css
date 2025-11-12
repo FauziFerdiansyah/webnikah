@@ -16,7 +16,7 @@ File ini berisi:
 #preloader {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 999999;
   background-color: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
@@ -60,9 +60,9 @@ File ini berisi:
 
 /* ... existing code ... */
 .audio-circle {
-  position: fixed;
-  bottom: var(--spacing-md);
-  left: var(--spacing-md);
+  position: fixed !important;
+  bottom: var(--spacing-md) !important;
+  left: var(--spacing-md) !important;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -71,12 +71,18 @@ File ini berisi:
   align-items: center;
   justify-content: center;
   box-shadow: 4px 5px 10px -5px rgba(0, 0, 0, 0.2);
-  z-index: 9998;
+  z-index: 999998 !important; /* Di bawah welcome-section (999999) */
   will-change: transform;
   border: 2px solid var(--bg-primary);
   cursor: pointer;
   opacity: 0.8;
   transition: opacity 0.2s ease-in-out;
+  /* Fix untuk mobile scroll */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  pointer-events: auto;
 }
 
 .audio-circle:hover {
@@ -100,6 +106,28 @@ File ini berisi:
   to {
     transform: rotate(360deg) translateZ(0);
   }
+}
+
+/* Fix untuk iOS Safari dan Android Chrome - prevent fixed element disappearing */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific fix */
+  .audio-circle {
+    position: fixed !important;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Pastikan audio circle tidak terpengaruh oleh parent transform */
+/* IMPORTANT: Jangan gunakan transform pada body/container karena akan break fixed positioning */
+body.transform-fix {
+  transform: none !important;
+  -webkit-transform: none !important;
+}
+
+.container.transform-fix {
+  transform: none !important;
+  -webkit-transform: none !important;
 }
 
 
@@ -140,9 +168,9 @@ body {
   background-color: var(--bg-secondary);
   /* Optimasi rendering */
   text-rendering: optimizeLegibility;
-  /* Hardware acceleration untuk smooth scrolling */
-  transform: var(--gpu-acceleration);
-  backface-visibility: var(--backface-visibility);
+  /* REMOVED: transform pada body karena akan break fixed positioning untuk audio-circle */
+  /* transform: var(--gpu-acceleration); */
+  /* backface-visibility: var(--backface-visibility); */
 }
 
 /* ===== MAIN CONTAINER & LAYOUT ===== */
@@ -2338,7 +2366,7 @@ font-weight: var(--font-weight-bold);
   width: 100%;
   height: 100dvh; /* Use dvh for better mobile support */
   min-height: 100dvh;
-  z-index: 999999;
+  z-index: 999999 !important;
   top: 0;
   left: 0;
   padding: 0;
@@ -2870,6 +2898,21 @@ Menggunakan CSS custom properties untuk smooth transitions
     bottom: var(--spacing-md);
     left: var(--spacing-md);
   }
+
+  /* Fix audio circle untuk mobile - prevent disappearing on scroll */
+  .audio-circle {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    z-index: 999998 !important; /* Di bawah welcome-section (999999) */
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+    will-change: auto !important;
+    /* Prevent iOS Safari scroll issues */
+    -webkit-overflow-scrolling: auto;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2905,6 +2948,14 @@ Menggunakan CSS custom properties untuk smooth transitions
   
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Additional fix untuk audio circle di mobile kecil */
+  .audio-circle {
+    width: 45px;
+    height: 45px;
+    bottom: 15px !important;
+    left: 15px !important;
   }
 }
 

@@ -179,17 +179,23 @@
                         </div>
                         <div class="mb-3">
                           <label class="form-label"><i class="ri-vip-crown-line"></i> Status VIP</label>
-                          <div class="d-flex gap-3">
+                          <div class="d-flex flex-column gap-2"></div>
                             <div class="form-check">
-                              <input class="form-check-input" type="radio" name="guestVip" id="vipYes" value="true">
-                              <label class="form-check-label" for="vipYes">
-                                VIP
+                              <input class="form-check-input" type="checkbox" name="guestTableVip" id="tableVipYes" value="true">
+                              <label class="form-check-label" for="tableVipYes">
+                                <i class="ri-restaurant-line"></i> VIP Table
                               </label>
                             </div>
                             <div class="form-check">
-                              <input class="form-check-input" type="radio" name="guestVip" id="vipNo" value="false" checked>
-                              <label class="form-check-label" for="vipNo">
-                                Regular
+                              <input class="form-check-input" type="checkbox" name="guestSouvenirVip" id="souvenirVipYes" value="true">
+                              <label class="form-check-label" for="souvenirVipYes">
+                                <i class="ri-gift-line"></i> VIP Souvenir
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" name="guestUndanganVip" id="undanganVipYes" value="true">
+                              <label class="form-check-label" for="undanganVipYes">
+                                <i class="ri-mail-line"></i> VIP Undangan
                               </label>
                             </div>
                           </div>
@@ -354,17 +360,23 @@
 
                 <div class="mb-3">
                   <label class="form-label"><i class="ri-vip-crown-line"></i> Status VIP</label>
-                  <div class="d-flex gap-3">
+                  <div class="d-flex flex-column gap-2">
                     <div class="form-check">
-                      <input class="form-check-input" type="radio" name="editGuestVip" id="editVipYes" value="true">
-                      <label class="form-check-label" for="editVipYes">
-                        VIP
+                      <input class="form-check-input" type="checkbox" name="editGuestTableVip" id="editTableVipYes" value="true">
+                      <label class="form-check-label" for="editTableVipYes">
+                        <i class="ri-restaurant-line"></i> VIP Table
                       </label>
                     </div>
                     <div class="form-check">
-                      <input class="form-check-input" type="radio" name="editGuestVip" id="editVipNo" value="false" checked>
-                      <label class="form-check-label" for="editVipNo">
-                        Regular
+                      <input class="form-check-input" type="checkbox" name="editGuestSouvenirVip" id="editSouvenirVipYes" value="true">
+                      <label class="form-check-label" for="editSouvenirVipYes">
+                        <i class="ri-gift-line"></i> VIP Souvenir
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="editGuestUndanganVip" id="editUndanganVipYes" value="true">
+                      <label class="form-check-label" for="editUndanganVipYes">
+                        <i class="ri-mail-line"></i> VIP Undangan
                       </label>
                     </div>
                   </div>

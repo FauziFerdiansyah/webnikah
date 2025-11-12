@@ -1513,7 +1513,7 @@ const autoClickTimeout = setTimeout(() => {
     $("#startToExplore").trigger("click");
     autoClickTriggered = true;
   }
-}, 8000);
+}, 80000);
 
 $("#startToExplore").on("click", function (e) {
   e.preventDefault();
@@ -2406,6 +2406,50 @@ document.addEventListener("DOMContentLoaded", () => StickerPopupManager.init());
 
     });
   });
+
+  /**
+   * FIX: Audio Circle Visibility on Mobile Scroll
+   * Memastikan audio circle tetap visible saat scroll di mobile
+   */
+  (function fixAudioCircleOnMobile() {
+    const audioCircle = document.getElementById('audioCircle');
+    if (!audioCircle) return;
+
+    // Force reflow untuk memastikan fixed positioning bekerja
+    function ensureAudioCircleVisible() {
+      if (audioCircle) {
+        // Force GPU acceleration
+        audioCircle.style.transform = 'translate3d(0, 0, 0)';
+        audioCircle.style.webkitTransform = 'translate3d(0, 0, 0)';
+        
+        // Ensure visibility
+        audioCircle.style.visibility = 'visible';
+        audioCircle.style.opacity = '0.8';
+      }
+    }
+
+    // Run on load
+    ensureAudioCircleVisible();
+
+    // Run on scroll (throttled)
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollTimeout = setTimeout(ensureAudioCircleVisible, 100);
+    }, { passive: true });
+
+    // Run on resize
+    window.addEventListener('resize', ensureAudioCircleVisible, { passive: true });
+
+    // Run on orientation change (mobile)
+    window.addEventListener('orientationchange', function() {
+      setTimeout(ensureAudioCircleVisible, 300);
+    });
+
+    console.log('✅ Audio circle mobile fix initialized');
+  })();
   
 })();
 
