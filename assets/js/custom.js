@@ -1505,7 +1505,7 @@ function runWelcomeExitAnimation() {
  * animasi welcome → sembunyi → aktifin scroll → reset AOS
  */
 
-// ✅ AUTO-CLICK TIMEOUT 8 DETIK
+// ✅ AUTO-CLICK TIMEOUT 10 DETIK
 let autoClickTriggered = false;
 const autoClickTimeout = setTimeout(() => {
   if (!autoClickTriggered) {
@@ -1513,7 +1513,7 @@ const autoClickTimeout = setTimeout(() => {
     $("#startToExplore").trigger("click");
     autoClickTriggered = true;
   }
-}, 80000);
+}, 10000);
 
 $("#startToExplore").on("click", function (e) {
   e.preventDefault();
