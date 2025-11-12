@@ -1,4 +1,4 @@
-# Fitur VIP Status V2 - 3 Kategori Terpisah
+# Fitur VIP Status V2 - 2 Kategori Terpisah
 
 ## 🔄 Perubahan dari V1 ke V2
 
@@ -8,11 +8,10 @@
 - Tamu hanya bisa VIP atau Regular untuk semua kategori
 
 ### V2 (Baru):
-- 3 field terpisah:
+- 2 field terpisah:
   - `isTableVip` (Boolean) - VIP Table
   - `isSouvenirVip` (Boolean) - VIP Souvenir
-  - `isUndanganVip` (Boolean) - VIP Undangan
-- 3 checkbox independen
+- 2 checkbox independen
 - Tamu bisa VIP di satu kategori, regular di kategori lain
 
 ## ✅ Keuntungan V2
@@ -55,10 +54,9 @@
     phone: "+6281234567890",
     maxGuests: 2,
     
-    // ✅ 3 Field VIP Terpisah (Boolean)
+    // ✅ 2 Field VIP Terpisah (Boolean)
     isTableVip: true,      // VIP Table
     isSouvenirVip: false,  // Regular Souvenir
-    isUndanganVip: true,   // VIP Undangan
     
     // ... other fields ...
 }

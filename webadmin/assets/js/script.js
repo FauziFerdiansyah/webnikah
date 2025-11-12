@@ -79,7 +79,11 @@ $(document).ready(function () {
     let allGuests = [];      // Semua data dari Firestore
     let filteredGuests = []; // Data setelah filter search
     let currentPage = 1;
-    const perPage = 10;
+    let perPage = 10;        // ✅ Changed to let untuk bisa diubah
+    
+    // ✅ Sort state
+    let sortColumn = "createdAt"; // Default sort by created date
+    let sortDirection = "desc";   // desc = newest first
 
     // ==============================
     // ✅ NORMALIZE PHONE NUMBER
@@ -200,35 +204,39 @@ $(document).ready(function () {
         const guestName  = $('[name="guestName"]').val().trim();
         const maxGuests  = Number($('[name="guestCount"]').val());
         const phoneRaw   = $('[name="guestPhone"]').val().trim();
+        const instagramRaw = $('[name="guestInstagram"]').val().trim();
 
         const source     = $('[name="guestSource"]').val();
         const sourceNote = $('[name="guestSourceNote"]').val().trim();
         
-        // ✅ Get VIP status dari 3 checkbox terpisah
+        // ✅ Get VIP status dari 2 checkbox terpisah
         const isTableVip     = $('[name="guestTableVip"]').is(':checked');
         const isSouvenirVip  = $('[name="guestSouvenirVip"]').is(':checked');
-        const isUndanganVip  = $('[name="guestUndanganVip"]').is(':checked');
 
         // ✅ Validasi
         if (!guestName)  return alert("Nama tamu wajib diisi");
         if (!maxGuests || maxGuests < 1) return alert("Jumlah minimal 1");
-        if (!phoneRaw)   return alert("Nomor HP wajib diisi");
+        
+        // ✅ Phone & Instagram keduanya opsional (boleh kosong keduanya)
 
-        // ✅ Normalize phone number
-        const phone = normalizePhoneNumber(phoneRaw);
+        // ✅ Normalize phone number (jika diisi)
+        const phone = phoneRaw ? normalizePhoneNumber(phoneRaw) : "";
+        
+        // ✅ Clean instagram username (remove @ if user input it)
+        const instagram = instagramRaw ? instagramRaw.replace(/^@/, '') : "";
 
         const payload = {
             name: guestName,
             phone: phone,
+            instagram: instagram,
             maxGuests: maxGuests,
 
             source: source || "",
             sourceName: sourceNote || "",
             
-            // ✅ 3 field VIP terpisah (boolean)
+            // ✅ 2 field VIP terpisah (boolean)
             isTableVip: isTableVip,
             isSouvenirVip: isSouvenirVip,
-            isUndanganVip: isUndanganVip,
 
             opened: false,
             openCount: 0,
@@ -256,13 +264,13 @@ $(document).ready(function () {
             $('[name="guestName"]').val("");
             $('[name="guestCount"]').val(1);
             $('[name="guestPhone"]').val("");
+            $('[name="guestInstagram"]').val("");
             $('[name="guestSource"]').val("");
             $('[name="guestSourceNote"]').val("");
             
-            // ✅ Reset 3 VIP checkboxes
+            // ✅ Reset 2 VIP checkboxes
             $('[name="guestTableVip"]').prop("checked", false);
             $('[name="guestSouvenirVip"]').prop("checked", false);
-            $('[name="guestUndanganVip"]').prop("checked", false);
 
         } catch (err) {
             console.error(err);
@@ -338,6 +346,67 @@ $(document).ready(function () {
         }
     }
 
+    // ✅ Sort function
+    function sortGuests(column) {
+        // Toggle direction if same column, otherwise default to asc
+        if (sortColumn === column) {
+            sortDirection = sortDirection === "asc" ? "desc" : "asc";
+        } else {
+            sortColumn = column;
+            sortDirection = "asc";
+        }
+
+        // Sort filteredGuests
+        filteredGuests.sort((a, b) => {
+            let aVal = a.data[column];
+            let bVal = b.data[column];
+
+            // Handle different data types
+            if (column === "name" || column === "source") {
+                // String comparison
+                aVal = (aVal || "").toLowerCase();
+                bVal = (bVal || "").toLowerCase();
+            } else if (column === "maxGuests") {
+                // Number comparison
+                aVal = aVal || 0;
+                bVal = bVal || 0;
+            } else if (column === "opened") {
+                // Boolean comparison
+                aVal = aVal ? 1 : 0;
+                bVal = bVal ? 1 : 0;
+            }
+
+            // Compare
+            if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+            if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        // Update UI
+        updateSortIcons();
+        currentPage = 1;
+        renderGuestTable(getPagedData());
+        renderPagination();
+
+        console.log(`📊 Sorted by ${column} (${sortDirection})`);
+    }
+
+    // ✅ Update sort icons in table header
+    function updateSortIcons() {
+        // Reset all icons
+        $(".sortable .sort-icon").removeClass("ri-arrow-up-line ri-arrow-down-line").addClass("ri-arrow-up-down-line");
+        
+        // Update active column icon
+        const activeIcon = $(`.sortable[data-sort="${sortColumn}"] .sort-icon`);
+        activeIcon.removeClass("ri-arrow-up-down-line");
+        
+        if (sortDirection === "asc") {
+            activeIcon.addClass("ri-arrow-up-line");
+        } else {
+            activeIcon.addClass("ri-arrow-down-line");
+        }
+    }
+
     // Render tabel
     function renderGuestTable(list) {
         const tbody = $("#guestTableBody");
@@ -359,24 +428,45 @@ $(document).ready(function () {
                             <i class="ri-arrow-down-s-line"></i>
                         </button>
                     </td>
-                    <td>${d.name || "-"}</td>
+                    <td>
+                        ${d.name || "-"}
+                        ${d.isTableVip ? '<i class="ri-vip-fill text-primary ms-1" data-bs-toggle="tooltip" title="VIP Table"></i>' : ''}
+                        ${d.isSouvenirVip ? '<i class="ri-vip-diamond-fill text-info ms-1" data-bs-toggle="tooltip" title="VIP Souvenir"></i>' : ''}
+                    </td>
                     <td>${d.maxGuests || 0} Tamu</td>
                     <td>${d.phone || "-"}</td>
                     <td>${d.source || "-"}</td>
-                    <td>${d.sourceName || "-"}</td>
                     <td>
                         ${d.opened 
                             ? '<span class="badge bg-success"><i class="ri-check-line"></i> Sudah</span>' 
                             : '<span class="badge bg-secondary"><i class="ri-close-line"></i> Belum</span>'}
                     </td>
+                    <td>
+                        ${d.sendCount && d.sendCount > 0
+                            ? '<span class="badge bg-success"><i class="ri-check-double-line"></i> Terkirim</span>' 
+                            : '<span class="badge bg-secondary"><i class="ri-close-line"></i> Belum</span>'}
+                    </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-success sendWhatsAppDirect" 
-                                data-id="${doc.id}"
-                                data-name="${d.name || ''}"
-                                data-phone="${d.phone || ''}"
-                                title="Kirim WhatsApp">
-                            <i class="ri-whatsapp-line"></i>
-                        </button>
+                        <div class="btn-group" role="group">
+                            ${d.phone ? `
+                                <button class="btn btn-sm btn-success sendWhatsAppDirect" 
+                                        data-id="${doc.id}"
+                                        data-name="${d.name || ''}"
+                                        data-phone="${d.phone || ''}"
+                                        title="Kirim WhatsApp">
+                                    <i class="ri-whatsapp-line"></i>
+                                </button>
+                            ` : ''}
+                            ${d.instagram ? `
+                                <button class="btn btn-sm btn-danger sendInstagramDM" 
+                                        data-id="${doc.id}"
+                                        data-name="${d.name || ''}"
+                                        data-instagram="${d.instagram || ''}"
+                                        title="Buka Instagram">
+                                    <i class="ri-instagram-line"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                         <button class="btn btn-sm btn-primary copyLink" data-id="${doc.id}" title="Copy Link">
                             <i class="ri-link"></i>
                         </button>
@@ -385,11 +475,11 @@ $(document).ready(function () {
                                 data-name="${d.name || ''}"
                                 data-maxguests="${d.maxGuests || 1}"
                                 data-phone="${d.phone || ''}"
+                                data-instagram="${d.instagram || ''}"
                                 data-source="${d.source || ''}"
                                 data-sourcename="${d.sourceName || ''}"
                                 data-istablevip="${d.isTableVip || false}"
-                                data-issouvenivip="${d.isSouvenirVip || false}"
-                                data-isundanganvip="${d.isUndanganVip || false}">
+                                data-issouvenivip="${d.isSouvenirVip || false}">
                             <i class="ri-edit-line"></i>
                         </button>
                         <button class="btn btn-sm btn-danger deleteGuest" data-id="${doc.id}">
@@ -421,6 +511,10 @@ $(document).ready(function () {
                                             <td>${d.phone || "-"}</td>
                                         </tr>
                                         <tr>
+                                            <td><strong>Instagram:</strong></td>
+                                            <td>${d.instagram ? `@${d.instagram}` : "-"}</td>
+                                        </tr>
+                                        <tr>
                                             <td><strong>Max Tamu:</strong></td>
                                             <td>${d.maxGuests || 0} orang</td>
                                         </tr>
@@ -442,9 +536,6 @@ $(document).ready(function () {
                                                     ${d.isSouvenirVip 
                                                         ? '<span class="badge bg-warning text-dark"><i class="ri-gift-line"></i> VIP Souvenir</span>' 
                                                         : '<span class="badge bg-secondary"><i class="ri-gift-line"></i> Regular Souvenir</span>'}
-                                                    ${d.isUndanganVip 
-                                                        ? '<span class="badge bg-warning text-dark"><i class="ri-mail-line"></i> VIP Undangan</span>' 
-                                                        : '<span class="badge bg-secondary"><i class="ri-mail-line"></i> Regular Undangan</span>'}
                                                 </div>
                                             </td>
                                         </tr>
@@ -531,6 +622,10 @@ $(document).ready(function () {
                 </tr>
             `);
         });
+
+        // ✅ Initialize Bootstrap tooltips for VIP icons
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     }
 
 
@@ -573,17 +668,82 @@ $(document).ready(function () {
         renderPagination();
     });
 
-    // Search
-    $("#searchGuest").on("input", function () {
-        const keyword = $(this).val().toLowerCase();
+    // ✅ Filter Function - Gabungan semua filter
+    function applyFilters() {
+        const keyword = $("#searchGuest").val().toLowerCase();
+        const sourceFilter = $("#filterSource").val();
+        const vipTableFilter = $("#filterVipTable").is(":checked");
+        const vipSouvenirFilter = $("#filterVipSouvenir").is(":checked");
+        const openedFilter = $("#filterOpened").is(":checked");
+        const rsvpFilter = $("#filterRsvp").is(":checked");
 
-        filteredGuests = allGuests.filter(d =>
-            d.data.name.toLowerCase().includes(keyword)
-        );
+        filteredGuests = allGuests.filter(d => {
+            const data = d.data;
+            
+            // Filter by name
+            if (keyword && !data.name.toLowerCase().includes(keyword)) {
+                return false;
+            }
+
+            // Filter by source (undangan dari)
+            if (sourceFilter && data.source !== sourceFilter) {
+                return false;
+            }
+
+            // Filter VIP Table
+            if (vipTableFilter && !data.isTableVip) {
+                return false;
+            }
+
+            // Filter VIP Souvenir
+            if (vipSouvenirFilter && !data.isSouvenirVip) {
+                return false;
+            }
+
+            // Filter Opened (sudah dilihat)
+            if (openedFilter && !data.opened) {
+                return false;
+            }
+
+            // Filter RSVP (sudah konfirmasi hadir)
+            if (rsvpFilter && data.rsvpStatus !== "yes") {
+                return false;
+            }
+
+            return true;
+        });
 
         currentPage = 1;
         renderGuestTable(getPagedData());
         renderPagination();
+
+        console.log(`🔍 Filter applied: ${filteredGuests.length} of ${allGuests.length} guests`);
+    }
+
+    // Search input
+    $("#searchGuest").on("input", applyFilters);
+
+    // Filter source dropdown
+    $("#filterSource").on("change", applyFilters);
+
+    // Filter checkboxes
+    $("#filterVipTable, #filterVipSouvenir, #filterOpened, #filterRsvp").on("change", applyFilters);
+
+    // Reset filters
+    $("#resetFilters").on("click", function () {
+        $("#searchGuest").val("");
+        $("#filterSource").val("");
+        $("#filterVipTable, #filterVipSouvenir, #filterOpened, #filterRsvp").prop("checked", false);
+        
+        applyFilters();
+        
+        console.log("🔄 Filters reset");
+    });
+
+    // ✅ Sort table columns
+    $(document).on("click", ".sortable", function () {
+        const column = $(this).data("sort");
+        sortGuests(column);
     });
         
 
@@ -596,6 +756,274 @@ $(document).ready(function () {
 
     // ✅ Load pertama kali saat page open
     loadGuestList();
+
+    // ✅ Per Page Selector
+    $("#perPageSelect").on("change", function() {
+        perPage = parseInt($(this).val());
+        currentPage = 1; // Reset ke halaman 1
+        renderGuestTable(getPagedData());
+        renderPagination();
+        
+        console.log(`📄 Per page changed to: ${perPage}`);
+    });
+
+    // ==============================
+    // ✅ IMPORT GUESTS FUNCTIONALITY
+    // ==============================
+    
+    let importData = [];
+
+    // Open import modal
+    $("#importGuestsBtn").on("click", function() {
+        const modal = new bootstrap.Modal(document.getElementById("importGuestsModal"));
+        modal.show();
+    });
+
+    // Download template CSV
+    $("#downloadTemplate").on("click", function() {
+        const template = [
+            ["Nama Tamu", "Jumlah Tamu", "Nomor Handphone", "Instagram", "Tamu Undangan Dari", "Keterangan Undangan Dari", "Table", "Souvenir"],
+            ["Nadia & Hadi", "2", "+62 895-4230-30255", "nadiahadi", "CPW", "Teman Kerja", "VIP", "Reguler"],
+            ["Budi Santoso", "1", "081234567890", "", "Alfira", "Teman Sekolah", "Reguler", "VIP"],
+            ["Ani Wijaya", "3", "", "aniwijaya", "Fauzi", "Keluarga", "VIP", "VIP"]
+        ];
+
+        const csv = template.map(row => row.join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "template_import_tamu.csv";
+        link.click();
+
+        console.log("📥 Template CSV downloaded");
+    });
+
+    // Handle file upload
+    $("#importFile").on("change", function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                if (jsonData.length < 2) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "File Kosong",
+                        text: "File tidak memiliki data yang valid."
+                    });
+                    return;
+                }
+
+                // Parse data
+                const headers = jsonData[0];
+                const rows = jsonData.slice(1).filter(row => row.length > 0 && row[0]); // Filter empty rows
+
+                importData = rows.map(row => {
+                    // Helper function untuk clean cell value
+                    const cleanCell = (cell) => {
+                        if (cell === undefined || cell === null || cell === "") return "";
+                        const str = String(cell).trim();
+                        return str === "" ? "" : str;
+                    };
+
+                    return {
+                        name: cleanCell(row[0]),
+                        maxGuests: parseInt(row[1]) || 1,
+                        phone: cleanCell(row[2]),
+                        instagram: cleanCell(row[3]).replace(/^@/, ''),
+                        source: cleanCell(row[4]),
+                        sourceName: cleanCell(row[5]),
+                        isTableVip: cleanCell(row[6]).toUpperCase() === "VIP",
+                        isSouvenirVip: cleanCell(row[7]).toUpperCase() === "VIP"
+                    };
+                });
+
+                // Show preview
+                showImportPreview(headers, rows.slice(0, 5), rows.length);
+                $("#processImport").prop("disabled", false);
+
+                console.log(`📊 Parsed ${importData.length} rows from file`);
+
+            } catch (error) {
+                console.error("Error parsing file:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Gagal membaca file. Pastikan format file benar."
+                });
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+
+    // Show preview
+    function showImportPreview(headers, rows, total) {
+        const previewHead = $("#importPreviewHead");
+        const previewBody = $("#importPreviewBody");
+
+        // Build header
+        let headerHtml = "<tr>";
+        headers.forEach(h => {
+            headerHtml += `<th>${h}</th>`;
+        });
+        headerHtml += "</tr>";
+        previewHead.html(headerHtml);
+
+        // Build body
+        let bodyHtml = "";
+        rows.forEach(row => {
+            bodyHtml += "<tr>";
+            // Pastikan row memiliki panjang yang sama dengan headers
+            for (let i = 0; i < headers.length; i++) {
+                const cell = row[i];
+                // Handle undefined, null, empty string, atau whitespace
+                const displayValue = (cell !== undefined && cell !== null && String(cell).trim() !== "") 
+                    ? String(cell).trim() 
+                    : "-";
+                bodyHtml += `<td>${displayValue}</td>`;
+            }
+            bodyHtml += "</tr>";
+        });
+        previewBody.html(bodyHtml);
+
+        $("#importTotalRows").text(total);
+        $("#importPreview").show();
+    }
+
+    // Process import
+    $("#processImport").on("click", async function() {
+        if (importData.length === 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Tidak Ada Data",
+                text: "Silakan upload file terlebih dahulu."
+            });
+            return;
+        }
+
+        // Confirm
+        const result = await Swal.fire({
+            icon: "question",
+            title: "Konfirmasi Import",
+            text: `Import ${importData.length} tamu ke database?`,
+            showCancelButton: true,
+            confirmButtonText: "Ya, Import",
+            cancelButtonText: "Batal"
+        });
+
+        if (!result.isConfirmed) return;
+
+        // Show loading
+        Swal.fire({
+            title: "Importing...",
+            text: "Mohon tunggu, sedang mengimport data...",
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        let successCount = 0;
+        let errorCount = 0;
+        const errors = [];
+
+        // Process each row
+        for (let i = 0; i < importData.length; i++) {
+            const guest = importData[i];
+
+            try {
+                // Validate
+                if (!guest.name) {
+                    errors.push(`Baris ${i + 2}: Nama tamu kosong`);
+                    errorCount++;
+                    continue;
+                }
+
+                // ✅ Phone & Instagram keduanya opsional (boleh kosong keduanya)
+
+                // Normalize phone
+                if (guest.phone) {
+                    guest.phone = normalizePhoneNumber(guest.phone);
+                }
+
+                // Prepare payload
+                const payload = {
+                    name: guest.name,
+                    phone: guest.phone,
+                    instagram: guest.instagram,
+                    maxGuests: guest.maxGuests,
+                    source: guest.source,
+                    sourceName: guest.sourceName,
+                    isTableVip: guest.isTableVip,
+                    isSouvenirVip: guest.isSouvenirVip,
+                    opened: false,
+                    openCount: 0,
+                    rsvpStatus: "",
+                    rsvpCount: 0,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    adminKey: ADMIN_KEY
+                };
+
+                // Save to Firestore
+                await addDoc(collection(window.db, "guest"), payload);
+                successCount++;
+
+            } catch (error) {
+                console.error(`Error importing row ${i + 2}:`, error);
+                errors.push(`Baris ${i + 2}: ${error.message}`);
+                errorCount++;
+            }
+        }
+
+        // Close loading
+        Swal.close();
+
+        // Show result
+        let resultHtml = `<p><strong>Berhasil:</strong> ${successCount} tamu</p>`;
+        if (errorCount > 0) {
+            resultHtml += `<p><strong>Gagal:</strong> ${errorCount} tamu</p>`;
+            if (errors.length > 0) {
+                resultHtml += `<details><summary>Lihat Error</summary><ul>`;
+                errors.slice(0, 10).forEach(err => {
+                    resultHtml += `<li>${err}</li>`;
+                });
+                if (errors.length > 10) {
+                    resultHtml += `<li>... dan ${errors.length - 10} error lainnya</li>`;
+                }
+                resultHtml += `</ul></details>`;
+            }
+        }
+
+        Swal.fire({
+            icon: successCount > 0 ? "success" : "error",
+            title: "Import Selesai",
+            html: resultHtml,
+            confirmButtonText: "OK"
+        });
+
+        // Reset and reload
+        $("#importFile").val("");
+        $("#importPreview").hide();
+        $("#processImport").prop("disabled", true);
+        importData = [];
+
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById("importGuestsModal")).hide();
+
+        // Reload guest list
+        loadGuestList();
+
+        console.log(`✅ Import completed: ${successCount} success, ${errorCount} errors`);
+    });
 
 
     // ==============================
@@ -686,28 +1114,28 @@ $(document).ready(function () {
         const name = $btn.data("name");
         const maxGuests = $btn.data("maxguests");
         const phone = $btn.data("phone");
+        const instagram = $btn.data("instagram");
         const source = $btn.data("source");
         const sourceName = $btn.data("sourcename");
         
-        // ✅ Get 3 VIP status terpisah
+        // ✅ Get 2 VIP status terpisah
         const isTableVip = $btn.data("istablevip");
         const isSouvenirVip = $btn.data("issouvenivip");
-        const isUndanganVip = $btn.data("isundanganvip");
 
         // Populate form
         $('input[name="editGuestId"]').val(id);
         $('input[name="editGuestName"]').val(name);
         $('input[name="editGuestCount"]').val(maxGuests);
         $('input[name="editGuestPhone"]').val(phone);
+        $('input[name="editGuestInstagram"]').val(instagram);
         $('select[name="editGuestSource"]').val(source);
         $('input[name="editGuestSourceNote"]').val(sourceName);
         
-        // ✅ Set 3 VIP checkboxes
+        // ✅ Set 2 VIP checkboxes
         $('input[name="editGuestTableVip"]').prop("checked", isTableVip === true || isTableVip === "true");
         $('input[name="editGuestSouvenirVip"]').prop("checked", isSouvenirVip === true || isSouvenirVip === "true");
-        $('input[name="editGuestUndanganVip"]').prop("checked", isUndanganVip === true || isUndanganVip === "true");
 
-        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, source, sourceName, isTableVip, isSouvenirVip, isUndanganVip });
+        console.log('📝 Edit guest data:', { id, name, maxGuests, phone, instagram, source, sourceName, isTableVip, isSouvenirVip });
 
         const modal = new bootstrap.Modal(document.getElementById("editGuestModal"));
         modal.show();
@@ -717,31 +1145,34 @@ $(document).ready(function () {
         const id = $('input[name="editGuestId"]').val();
 
         const phoneRaw = $('input[name="editGuestPhone"]').val().trim();
+        const instagramRaw = $('input[name="editGuestInstagram"]').val().trim();
 
         const payload = {
             name: $('input[name="editGuestName"]').val().trim(),
             maxGuests: Number($('input[name="editGuestCount"]').val()),
-            phone: normalizePhoneNumber(phoneRaw),  // ✅ Normalize phone
+            phone: phoneRaw ? normalizePhoneNumber(phoneRaw) : "",  // ✅ Normalize phone (optional)
+            instagram: instagramRaw ? instagramRaw.replace(/^@/, '') : "",  // ✅ Clean instagram (optional)
             source: $('select[name="editGuestSource"]').val(),
             sourceName: $('input[name="editGuestSourceNote"]').val().trim(),
             
-            // ✅ 3 field VIP terpisah (boolean)
+            // ✅ 2 field VIP terpisah (boolean)
             isTableVip: $('input[name="editGuestTableVip"]').is(':checked'),
             isSouvenirVip: $('input[name="editGuestSouvenirVip"]').is(':checked'),
-            isUndanganVip: $('input[name="editGuestUndanganVip"]').is(':checked'),
             
             updatedAt: serverTimestamp(),
             adminKey: ADMIN_KEY
         };
 
-        if (!payload.name || !payload.maxGuests || !phoneRaw) {
+        if (!payload.name || !payload.maxGuests) {
             Swal.fire({
                 icon: "warning",
                 title: "Data belum lengkap",
-                text: "Mohon lengkapi semua field wajib."
+                text: "Nama dan jumlah tamu wajib diisi."
             });
             return;
         }
+
+        // ✅ Phone & Instagram keduanya opsional (boleh kosong keduanya)
 
         try {
             await updateDoc(doc(window.db, "guest", id), payload);
@@ -1103,6 +1534,37 @@ Alfira & Fauzi`;
             // Re-enable button
             $btn.prop("disabled", false);
         }
+    });
+
+    // ✅ Handler untuk tombol Instagram di list
+    $(document).on("click", ".sendInstagramDM", function() {
+        const $btn = $(this);
+        const instagram = $btn.data("instagram");
+        const name = $btn.data("name");
+
+        if (!instagram) {
+            Swal.fire({
+                icon: "warning",
+                title: "Instagram tidak tersedia",
+                text: "Tamu ini tidak memiliki username Instagram."
+            });
+            return;
+        }
+
+        // Open Instagram profile in new tab
+        const instagramUrl = `https://www.instagram.com/${instagram}/`;
+        window.open(instagramUrl, '_blank');
+
+        console.log(`📸 Opened Instagram: @${instagram} (${name})`);
+
+        // Optional: Show success message
+        Swal.fire({
+            icon: "success",
+            title: "Instagram Dibuka",
+            text: `Profil @${instagram} dibuka di tab baru`,
+            timer: 1500,
+            showConfirmButton: false
+        });
     });
 
     // Update sendWhatsApp dari preview untuk juga update tracking
