@@ -15,9 +15,18 @@ import {
 $(document).ready(function () {
 
     // ==============================
+    // ==============================
     // URL DOMAIN CONFIG
     // ==============================
-    let url_domain = "http://127.0.0.1:5500/";
+    // ✅ Auto-detect current domain atau gunakan default
+    let url_domain = window.location.origin + "/";
+    
+    // Fallback ke production domain jika localhost
+    if (url_domain.includes("localhost") || url_domain.includes("127.0.0.1")) {
+        url_domain = "https://alfirafauzi.site/";
+    }
+    
+    console.log("🌐 URL Domain:", url_domain);
 
     // ==============================
     // MENU TOGGLE
