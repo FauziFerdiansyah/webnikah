@@ -476,6 +476,12 @@ $(document).ready(function () {
                                 </button>
                             ` : ''}
                         </div>
+                        <button class="btn btn-sm btn-warning copyMessage" 
+                                data-id="${doc.id}"
+                                data-name="${d.name || ''}"
+                                title="Copy Pesan">
+                            <i class="ri-file-copy-2-line"></i>
+                        </button>
                         <button class="btn btn-sm btn-primary copyLink" data-id="${doc.id}" title="Copy Link">
                             <i class="ri-link"></i>
                         </button>
@@ -1574,6 +1580,55 @@ Alfira & Fauzi`;
             timer: 1500,
             showConfirmButton: false
         });
+    });
+
+    // ✅ Handler untuk tombol Copy Message di list
+    $(document).on("click", ".copyMessage", async function() {
+        const $btn = $(this);
+        const guestId = $btn.data("id");
+        const guestName = $btn.data("name");
+
+        try {
+            // Load template dari Firestore
+            const docRef = doc(window.db, "invitationTemplate", TEMPLATE_DOC_ID);
+            const docSnap = await getDoc(docRef);
+
+            let template = DEFAULT_TEMPLATE;
+            if (docSnap.exists()) {
+                template = docSnap.data().template || DEFAULT_TEMPLATE;
+            }
+
+            // Generate invitation link
+            const invitationLink = `${url_domain}?&g=${guestId}`;
+
+            // Replace placeholders
+            let message = template
+                .replace(/\[Nama Tamu\]/g, guestName)
+                .replace(/\[Link Undangan\]/g, invitationLink);
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(message);
+
+            // Show success
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil Disalin!",
+                html: `Pesan untuk <strong>${guestName}</strong> berhasil disalin ke clipboard.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            console.log(`📋 Message copied for: ${guestName}`);
+
+        } catch (error) {
+            console.error("Error copying message:", error);
+            
+            Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: "Gagal menyalin pesan. Coba lagi."
+            });
+        }
     });
 
     // Update sendWhatsApp dari preview untuk juga update tracking
