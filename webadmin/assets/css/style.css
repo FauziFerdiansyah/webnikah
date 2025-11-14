@@ -304,6 +304,10 @@ p {
   }
 }
 
+.list-group-item+.list-group-item.active {
+  border-width: 0px !important;
+}
+
 
 /* Loading Overlay */
 .loading-overlay {

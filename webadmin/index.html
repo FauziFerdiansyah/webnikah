@@ -35,7 +35,9 @@
       <div class="bg-primary-light border-right" id="sidebar-wrapper">
           <div class="sidebar-heading text-white"><img src="assets/img/logo-af.png" height="40" alt="logo"></div>
           <div class="list-group list-group-flush">
-              <a href="#" class="list-group-item list-group-item-action bg-primary-light active"><i class="ri-contacts-book-fill"></i> Buat Tamu Undangan</a>
+              <a href="#" class="list-group-item list-group-item-action bg-primary-light active" data-menu="guests"><i class="ri-contacts-book-fill"></i> Buat Tamu Undangan</a>
+              <a href="#" class="list-group-item list-group-item-action bg-primary-light" data-menu="rsvp"><i class="ri-pass-valid-line"></i> RSVP</a>
+              <a href="#" class="list-group-item list-group-item-action bg-primary-light" data-menu="comments"><i class="ri-chat-smile-2-line"></i> Comments</a>
           </div>
       </div>
       <!-- /#sidebar-wrapper -->
@@ -57,7 +59,7 @@
         </nav>
 
         <div class="container px-lg-5 py-lg-2 position-relative">
-          <div class="mt-4 pb-5">
+          <div class="mt-4 pb-5" id="guestsSection">
             <!-- Tabs -->
             <ul class="nav nav-tabs" id="guestTabs" role="tablist">
               <li class="nav-item" role="presentation">
@@ -400,6 +402,236 @@
 
             </div>
           </div>
+
+          <!-- RSVP Section -->
+          <div class="mt-4 pb-5" id="rsvpSection" style="display: none;">
+            <h1 class="fs-5 mb-3"><i class="ri-pass-valid-line"></i> RSVP Management</h1>
+            
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+              <div class="col-md-3 mb-3">
+                <div class="card border-primary">
+                  <div class="card-body text-center">
+                    <i class="ri-group-line fs-1 text-primary"></i>
+                    <h3 class="mt-2 mb-0" id="totalGuests">0</h3>
+                    <p class="text-muted mb-0">Total Tamu</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card border-success">
+                  <div class="card-body text-center">
+                    <i class="ri-checkbox-circle-line fs-1 text-success"></i>
+                    <h3 class="mt-2 mb-0" id="totalHadir">0</h3>
+                    <p class="text-muted mb-0">Hadir</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card border-danger">
+                  <div class="card-body text-center">
+                    <i class="ri-close-circle-line fs-1 text-danger"></i>
+                    <h3 class="mt-2 mb-0" id="totalTidakHadir">0</h3>
+                    <p class="text-muted mb-0">Tidak Hadir</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card border-secondary">
+                  <div class="card-body text-center">
+                    <i class="ri-question-line fs-1 text-secondary"></i>
+                    <h3 class="mt-2 mb-0" id="totalBelumKonfirmasi">0</h3>
+                    <p class="text-muted mb-0">Belum Konfirmasi</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card card-border mb-lg-5 mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h2 class="fs-6 mb-0">Daftar RSVP</h2>
+                </div>
+
+                <!-- Filter Section -->
+                <div class="row mb-3 align-items-center">
+                  <div class="col-md-5 mb-2">
+                    <input type="text" id="searchRsvp" class="form-control" placeholder="🔍 Cari nama tamu...">
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <select id="filterRsvpStatus" class="form-select">
+                      <option value="">Semua Status</option>
+                      <option value="yes">Hadir</option>
+                      <option value="no">Tidak Hadir</option>
+                      <option value="pending">Belum Konfirmasi</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <button id="resetRsvpFilters" class="btn btn-sm btn-outline-secondary w-100">
+                      <i class="ri-refresh-line"></i> Reset
+                    </button>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered table-hover align-middle">
+                    <thead>
+                      <tr>
+                        <th width="50" class="text-center"><i class="ri-eye-line"></i></th>
+                        <th class="sortable-rsvp" data-sort="name">
+                          <div class="sortheader">
+                            <span>Nama Tamu</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                        <th class="sortable-rsvp" data-sort="rsvpStatus">
+                          <div class="sortheader">
+                            <span>Status RSVP</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                        <th class="sortable-rsvp" data-sort="rsvpCount">
+                          <div class="sortheader">
+                            <span>Jumlah Hadir</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                        <th class="sortable-rsvp" data-sort="maxGuests">
+                          <div class="sortheader">
+                            <span>Max Tamu</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                        <th>No HP</th>
+                        <th>Dari</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rsvpTableBody">
+                      <tr>
+                        <td colspan="7" class="text-center text-muted">Belum ada data RSVP.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <label class="mb-0 text-muted" style="font-size: 14px;">Tampilkan:</label>
+                    <select id="perPageRsvp" class="form-select form-select-sm" style="width: 65px;">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                    <span class="text-muted" style="font-size: 14px;">data per halaman</span>
+                  </div>
+                  <nav>
+                    <ul id="paginationRsvp" class="pagination pagination-sm mb-0"></ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comments Section -->
+          <div class="mt-4 pb-5" id="commentsSection" style="display: none;">
+            <h1 class="fs-5 mb-3"><i class="ri-chat-smile-2-line"></i> Comments Management</h1>
+            <div class="card card-border mb-lg-5 mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h2 class="fs-6 mb-0">Daftar Comments</h2>
+                </div>
+
+                <!-- Filter Section -->
+                <div class="row mb-3 align-items-center">
+                  <div class="col-md-6 mb-2">
+                    <input type="text" id="searchComment" class="form-control" placeholder="🔍 Cari nama atau komentar...">
+                  </div>
+                  <div class="col-md-4 mb-2">
+                    <select id="filterCommentSticker" class="form-select">
+                      <option value="">Semua Sticker</option>
+                      <option value="stc-a-1.gif">🎉 Sticker 1</option>
+                      <option value="stc-a-2.gif">💐 Sticker 2</option>
+                      <option value="stc-a-3.gif">🎊 Sticker 3</option>
+                      <option value="stc-a-4.gif">💝 Sticker 4</option>
+                      <option value="stc-a-5.gif">🌸 Sticker 5</option>
+                      <option value="stc-a-6.gif">🎈 Sticker 6</option>
+                      <option value="stc-a-7.gif">💖 Sticker 7</option>
+                      <option value="stc-a-8.gif">🥳 Sticker 8</option>
+                      <option value="stc-a-9.gif">🌹 Sticker 9</option>
+                      <option value="stc-a-10.gif">🎁 Sticker 10</option>
+                      <option value="stc-a-11.gif">💕 Sticker 11</option>
+                      <option value="stc-a-12.gif">🌺 Sticker 12</option>
+                      <option value="stc-a-13.gif">✨ Sticker 13</option>
+                      <option value="stc-a-14.gif">🎀 Sticker 14</option>
+                      <option value="stc-a-15.gif">💐 Sticker 15</option>
+                      <option value="stc-a-16.gif">🌷 Sticker 16</option>
+                      <option value="stc-a-17.gif">🎊 Sticker 17</option>
+                      <option value="stc-a-18.gif">💫 Sticker 18</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <button id="resetCommentFilters" class="btn btn-sm btn-outline-secondary w-100">
+                      <i class="ri-refresh-line"></i> Reset
+                    </button>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered table-hover align-middle">
+                    <thead>
+                      <tr>
+                        <th width="50" class="text-center"><i class="ri-eye-line"></i></th>
+                        <th class="sortable-comment" data-sort="name">
+                          <div class="sortheader">
+                            <span>Nama</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                        <th>Komentar</th>
+                        <th class="sortable-comment" data-sort="sticker">
+                          <div class="sortheader">
+                            <span>Sticker</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                        <th class="sortable-comment" data-sort="createdAt">
+                          <div class="sortheader">
+                            <span>Tanggal</span>
+                            <i class="ri-arrow-up-down-line sort-icon"></i>
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="commentTableBody">
+                      <tr>
+                        <td colspan="5" class="text-center text-muted">Belum ada komentar.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <label class="mb-0 text-muted" style="font-size: 14px;">Tampilkan:</label>
+                    <select id="perPageComment" class="form-select form-select-sm" style="width: 65px;">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                    <span class="text-muted" style="font-size: 14px;">data per halaman</span>
+                  </div>
+                  <nav>
+                    <ul id="paginationComment" class="pagination pagination-sm mb-0"></ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
