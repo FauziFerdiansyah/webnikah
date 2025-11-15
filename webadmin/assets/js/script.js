@@ -451,6 +451,9 @@ $(document).ready(function () {
         const tbody = $("#guestTableBody");
         tbody.empty();
 
+        // Update total data count
+        $("#totalDataGuest").text(filteredGuests.length);
+
         if (!list.length) {
             tbody.html(`<tr><td colspan="8" class="text-center text-muted">Tidak ada data.</td></tr>`);
             return;
@@ -676,7 +679,7 @@ $(document).ready(function () {
 
 
     // Load from Firestore
-    async function loadGuestList() {
+    async function loadGuestList(keepFilters = false) {
         const tbody = $("#guestTableBody");
         tbody.html(`<tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>`);
 
@@ -689,12 +692,15 @@ $(document).ready(function () {
                 allGuests.push({ id: doc.id, data: doc.data() });
             });
 
-            filteredGuests = [...allGuests];
-
-            currentPage = 1;
-
-            renderGuestTable(getPagedData());
-            renderPagination();
+            // ✅ Jika keepFilters = true, re-apply filter yang ada
+            if (keepFilters) {
+                applyFilters();
+            } else {
+                filteredGuests = [...allGuests];
+                currentPage = 1;
+                renderGuestTable(getPagedData());
+                renderPagination();
+            }
         } catch (err) {
             console.error("❌ Error load guest list:", err);
             tbody.html(`<tr><td colspan="6" class="text-danger text-center">Gagal memuat data.</td></tr>`);
@@ -721,6 +727,7 @@ $(document).ready(function () {
         const vipSouvenirFilter = $("#filterVipSouvenir").is(":checked");
         const openedFilter = $("#filterOpened").is(":checked");
         const rsvpFilter = $("#filterRsvp").is(":checked");
+        const belumDikirimFilter = $("#filterBelumDikirim").is(":checked");
 
         filteredGuests = allGuests.filter(d => {
             const data = d.data;
@@ -755,6 +762,11 @@ $(document).ready(function () {
                 return false;
             }
 
+            // Filter Belum Dikirim (sendCount === 0 atau tidak ada)
+            if (belumDikirimFilter && (data.sendCount && data.sendCount > 0)) {
+                return false;
+            }
+
             return true;
         });
 
@@ -772,13 +784,13 @@ $(document).ready(function () {
     $("#filterSource").on("change", applyFilters);
 
     // Filter checkboxes
-    $("#filterVipTable, #filterVipSouvenir, #filterOpened, #filterRsvp").on("change", applyFilters);
+    $("#filterVipTable, #filterVipSouvenir, #filterOpened, #filterRsvp, #filterBelumDikirim").on("change", applyFilters);
 
     // Reset filters
     $("#resetFilters").on("click", function () {
         $("#searchGuest").val("");
         $("#filterSource").val("");
-        $("#filterVipTable, #filterVipSouvenir, #filterOpened, #filterRsvp").prop("checked", false);
+        $("#filterVipTable, #filterVipSouvenir, #filterOpened, #filterRsvp, #filterBelumDikirim").prop("checked", false);
         
         applyFilters();
         
@@ -811,6 +823,141 @@ $(document).ready(function () {
         
         console.log(`📄 Per page changed to: ${perPage}`);
     });
+
+    // ==============================
+    // ✅ EXPORT GUESTS TO EXCEL
+    // ==============================
+    
+    $("#exportGuestsBtn").on("click", async function() {
+        const $btn = $(this);
+        const originalHtml = $btn.html();
+        
+        // Show loading
+        $btn.prop("disabled", true).html('<i class="ri-loader-4-line"></i> Exporting...');
+
+        try {
+            // Get all guests
+            const q = query(collection(window.db, "guest"), orderBy("createdAt", "desc"));
+            const snap = await getDocs(q);
+
+            if (snap.empty) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Tidak Ada Data",
+                    text: "Belum ada data tamu untuk di-export."
+                });
+                return;
+            }
+
+            // ✅ SHEET 1: Format Sederhana (untuk import)
+            const simpleData = [];
+            
+            // ✅ SHEET 2: Data Lengkap (full details)
+            const fullData = [];
+            
+            snap.forEach(doc => {
+                const d = doc.data();
+                
+                // Sheet 1: Simple format
+                simpleData.push({
+                    "Nama Tamu": d.name || "",
+                    "Jumlah Tamu": d.maxGuests || 0,
+                    "Nomor Handphone": d.phone || "",
+                    "Instagram": d.instagram || "",
+                    "Tamu Undangan Dari": d.source || "",
+                    "Keterangan Undangan Dari": d.sourceName || "",
+                    "Table": d.isTableVip ? "VIP" : "Reguler",
+                    "Souvenir": d.isSouvenirVip ? "VIP" : "Reguler"
+                });
+
+                // Sheet 2: Full details
+                fullData.push({
+                    "ID Guest": doc.id,
+                    "Nama Tamu": d.name || "",
+                    "Jumlah Tamu": d.maxGuests || 0,
+                    "Nomor Handphone": d.phone || "",
+                    "Instagram": d.instagram ? `@${d.instagram}` : "",
+                    "Tamu Undangan Dari": d.source || "",
+                    "Keterangan Undangan Dari": d.sourceName || "",
+                    "Table": d.isTableVip ? "VIP" : "Reguler",
+                    "Souvenir": d.isSouvenirVip ? "VIP" : "Reguler",
+                    "Status Buka": d.opened ? "Sudah" : "Belum",
+                    "Jumlah Buka": d.openCount || 0,
+                    "Status RSVP": d.rsvpStatus === "yes" ? "Hadir" : d.rsvpStatus === "no" ? "Tidak Hadir" : "Belum Konfirmasi",
+                    "Jumlah Hadir": d.rsvpCount || 0,
+                    "Device Type": d.deviceType || "",
+                    "Terakhir Dikirim WA": d.lastSent ? formatDate(d.lastSent) : "",
+                    "Jumlah Kirim WA": d.sendCount || 0,
+                    "Dibuat": formatDate(d.createdAt),
+                    "Diupdate": formatDate(d.updatedAt)
+                });
+            });
+
+            // Create workbook with 2 sheets
+            const wb = XLSX.utils.book_new();
+
+            // ✅ Sheet 1: Simple Format
+            const ws1 = XLSX.utils.json_to_sheet(simpleData);
+            
+            // Auto-size columns for Sheet 1
+            const colWidths1 = Object.keys(simpleData[0]).map(key => {
+                const maxLength = Math.max(
+                    key.length,
+                    ...simpleData.map(row => String(row[key] || "").length)
+                );
+                return { wch: Math.min(maxLength + 2, 50) };
+            });
+            ws1['!cols'] = colWidths1;
+            
+            XLSX.utils.book_append_sheet(wb, ws1, "Import Format");
+
+            // ✅ Sheet 2: Full Details
+            const ws2 = XLSX.utils.json_to_sheet(fullData);
+            
+            // Auto-size columns for Sheet 2
+            const colWidths2 = Object.keys(fullData[0]).map(key => {
+                const maxLength = Math.max(
+                    key.length,
+                    ...fullData.map(row => String(row[key] || "").length)
+                );
+                return { wch: Math.min(maxLength + 2, 50) };
+            });
+            ws2['!cols'] = colWidths2;
+            
+            XLSX.utils.book_append_sheet(wb, ws2, "Full Details");
+
+            // Generate filename with timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `Guest_List_${timestamp}.xlsx`;
+
+            // Download
+            XLSX.writeFile(wb, filename);
+
+            Swal.fire({
+                icon: "success",
+                title: "Export Berhasil!",
+                html: `<p>${simpleData.length} tamu berhasil di-export ke <strong>${filename}</strong></p>
+                       <p class="text-muted mb-0"><small>📄 Sheet 1: Import Format (8 kolom)<br>📊 Sheet 2: Full Details (18 kolom)</small></p>`,
+                timer: 3000,
+                showConfirmButton: false
+            });
+
+            console.log(`✅ Exported ${simpleData.length} guests to ${filename} (2 sheets)`);
+
+        } catch (err) {
+            console.error("❌ Error exporting guests:", err);
+            Swal.fire({
+                icon: "error",
+                title: "Export Gagal",
+                text: "Terjadi kesalahan saat export data."
+            });
+        } finally {
+            // Reset button
+            $btn.prop("disabled", false).html(originalHtml);
+        }
+    });
+
 
     // ==============================
     // ✅ IMPORT GUESTS FUNCTIONALITY
@@ -1064,8 +1211,8 @@ $(document).ready(function () {
         // Close modal
         bootstrap.Modal.getInstance(document.getElementById("importGuestsModal")).hide();
 
-        // Reload guest list
-        loadGuestList();
+        // Reload guest list (reset filters karena ada data baru)
+        loadGuestList(false);
 
         console.log(`✅ Import completed: ${successCount} success, ${errorCount} errors`);
     });
@@ -1140,7 +1287,7 @@ $(document).ready(function () {
                         showConfirmButton: false
                     });
 
-                    loadGuestList();
+                    loadGuestList(true); // ✅ Keep filters active
                 } catch (err) {
                     console.error(err);
                     Swal.fire({
@@ -1233,7 +1380,7 @@ $(document).ready(function () {
             const modalEl = document.getElementById("editGuestModal");
             bootstrap.Modal.getInstance(modalEl).hide();
 
-            loadGuestList();
+            loadGuestList(true); // ✅ Keep filters active
 
         } catch (err) {
             console.error(err);
@@ -1563,9 +1710,9 @@ Alfira & Fauzi`;
 
             console.log('✅ WhatsApp opened for:', guestName, formattedPhone);
 
-            // Reload list untuk update tracking info
+            // Reload list untuk update tracking info (keep filters)
             setTimeout(() => {
-                loadGuestList();
+                loadGuestList(true); // ✅ Keep filters active
             }, 1000);
 
         } catch (err) {
@@ -1768,6 +1915,9 @@ Alfira & Fauzi`;
     function renderRsvpTable(list) {
         const tbody = $("#rsvpTableBody");
         tbody.empty();
+
+        // Update total data count
+        $("#totalDataRsvp").text(filteredRsvps.length);
 
         if (!list.length) {
             tbody.html(`<tr><td colspan="7" class="text-center text-muted">Tidak ada data RSVP.</td></tr>`);
@@ -2111,6 +2261,9 @@ Alfira & Fauzi`;
     function renderCommentTable(list) {
         const tbody = $("#commentTableBody");
         tbody.empty();
+
+        // Update total data count
+        $("#totalDataComment").text(filteredComments.length);
 
         if (!list.length) {
             tbody.html(`<tr><td colspan="5" class="text-center text-muted">Tidak ada komentar.</td></tr>`);

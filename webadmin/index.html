@@ -78,6 +78,9 @@
                 </button>
               </li>
               <li class="nav-item ms-auto" role="presentation">
+                <button class="btn btn-primary btn-sm me-2" id="exportGuestsBtn" type="button">
+                  <i class="ri-download-2-line"></i> Export Excel
+                </button>
                 <button class="btn btn-success btn-sm" id="importGuestsBtn" type="button">
                   <i class="ri-file-excel-2-line"></i> Import Data
                 </button>
@@ -148,6 +151,12 @@
                                             <i class="ri-check-line text-success"></i> RSVP Hadir
                                         </label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="filterBelumDikirim" value="belumDikirim">
+                                        <label class="form-check-label" for="filterBelumDikirim">
+                                            <i class="ri-mail-send-line text-warning"></i> Belum Dikirim
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -210,6 +219,7 @@
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <!-- Per Page Selector (Kiri) -->
                             <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted" style="font-size: 14px;">(<i class="ri-list-check-2"></i> <strong id="totalDataGuest">0</strong> Data)</span>
                                 <label class="mb-0 text-muted" style="font-size: 14px;">Tampilkan:</label>
                                 <select id="perPageSelect" class="form-select form-select-sm" style="width: 65px;">
                                     <option value="10">10</option>
@@ -517,6 +527,7 @@
                 <!-- Pagination -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
                   <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted" style="font-size: 14px;">(<i class="ri-list-check-2"></i> <strong id="totalDataRsvp">0</strong> Data)</span>
                     <label class="mb-0 text-muted" style="font-size: 14px;">Tampilkan:</label>
                     <select id="perPageRsvp" class="form-select form-select-sm" style="width: 65px;">
                       <option value="10">10</option>
@@ -615,6 +626,7 @@
                 <!-- Pagination -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
                   <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted" style="font-size: 14px;">(<i class="ri-list-check-2"></i> <strong id="totalDataComment">0</strong> Data)</span>
                     <label class="mb-0 text-muted" style="font-size: 14px;">Tampilkan:</label>
                     <select id="perPageComment" class="form-select form-select-sm" style="width: 65px;">
                       <option value="10">10</option>
